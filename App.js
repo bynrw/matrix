@@ -58,6 +58,7 @@ import {
   Notifications,
   Dashboard,
   AccessTime,
+  Save,
   CheckCircle,
   Warning as WarningIcon,
   Error,
@@ -103,7 +104,7 @@ const initialHospitals = [
 const initialCapacities = [
   { id: 1, name: 'Notaufnahme', category: 'capacity' },
   { id: 2, name: 'Intensivstation', category: 'capacity' },
-  { id: 3, name: 'Stroke Unit', category: 'capacity' },
+  { id: 3, name: 'Neurologie', category: 'capacity' },
   { id: 4, name: 'Herzkatheterlabor', category: 'capacity' },
   { id: 5, name: 'OP-Bereitschaft', category: 'capacity' },
   { id: 6, name: 'Kindernotaufnahme', category: 'capacity' },
@@ -179,7 +180,7 @@ function App() {
           } else if (hospital.id === 1 && item.id === 1) {
             status = STATUS.INCAPACITATED; // UKD Notaufnahme
           } else if (hospital.id === 1 && item.id === 3) {
-            status = STATUS.FUTURE_OVERLOAD; // UKD Stroke Unit
+            status = STATUS.FUTURE_OVERLOAD; // UKD Neurologie
           } else if (hospital.id === 5 && item.id === 2) {
             status = STATUS.OVERLOADED; // Marien Hospital Intensiv
           } else if (hospital.id === 6 && item.id === 6) {
@@ -1008,18 +1009,7 @@ function App() {
               </MenuOption>
             </Menu>
 
-            {/* Systemhinweise */}
-            <Box sx={{ px: 2 }}>
-              <Alert 
-                severity="info" 
-                icon={<Notifications />}
-                sx={{ mb: 2 }}
-              >
-                <strong>Systemstatus:</strong> Alle Verbindungen aktiv. 
-                {stats.overloaded > 0 && ` ⚠️ ${stats.overloaded} Bereiche ausgelastet.`}
-                {stats.totalPva > 0 && ` 📋 ${stats.totalPva} aktive Voranmeldungen.`}
-              </Alert>
-            </Box>
+            
 
             {/* Statistics Dashboard */}
             <Box sx={{ p: 2 }}>
@@ -1177,18 +1167,21 @@ function StatusDialog({ open, onClose, onSubmit, currentData }) {
   const [comment, setComment] = useState('');
   const [orderedBy, setOrderedBy] = useState('');
   const [skipAutoFree, setSkipAutoFree] = useState(false);
+  const [submitAttempted, setSubmitAttempted] = useState(false);
 
   useEffect(() => {
     if (currentData) {
       setStatus(currentData.status);
       setComment(currentData.comment || '');
     }
-  }, [currentData]);
+    // Reset validation state when dialog opens/closes
+    setSubmitAttempted(false);
+  }, [currentData, open]);
 
   const handleSubmit = () => {
+    setSubmitAttempted(true);
     if (!orderedBy.trim()) {
-      alert('Bitte geben Sie an, von wem der Auftrag kommt');
-      return;
+      return; // Error message will be shown by helper text
     }
     onSubmit(status, comment, skipAutoFree);
     setOrderedBy('');
@@ -1196,30 +1189,103 @@ function StatusDialog({ open, onClose, onSubmit, currentData }) {
     setSkipAutoFree(false);
   };
 
+  // Status option configuration with color coding and icons
+  const statusOptions = [
+    { value: STATUS.FREE, label: 'Verfügbar', icon: <CheckCircle />, color: STATUS_COLORS[STATUS.FREE] },
+    { value: STATUS.LIMITED, label: 'Eingeschränkt', icon: <WarningIcon />, color: STATUS_COLORS[STATUS.LIMITED] },
+    { value: STATUS.OVERLOADED, label: 'Ausgelastet', icon: <Error />, color: STATUS_COLORS[STATUS.OVERLOADED] },
+    { value: STATUS.INCAPACITATED, label: 'Handlungsunfähig', icon: <Error />, color: STATUS_COLORS[STATUS.INCAPACITATED] }
+  ];
+
+  // Get the selected status details
+  const selectedStatus = statusOptions.find(option => option.value === status) || statusOptions[0];
+
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Status ändern</DialogTitle>
-      <DialogContent>
-        <Grid container spacing={2} sx={{ mt: 1 }}>
+    <Dialog 
+      open={open} 
+      onClose={onClose} 
+      maxWidth="sm" 
+      fullWidth
+      PaperProps={{
+        sx: { 
+          borderRadius: 2,
+          boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+          overflow: 'hidden'
+        }
+      }}
+    >
+      <DialogTitle sx={{ 
+        borderBottom: '1px solid #eee', 
+        backgroundColor: '#f9f9f9', 
+        pb: 2
+      }}>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Box 
+            sx={{ 
+              width: 40, 
+              height: 40, 
+              borderRadius: '50%', 
+              backgroundColor: selectedStatus.color,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#fff',
+              mr: 2
+            }}
+          >
+            {selectedStatus.icon}
+          </Box>
+          <Typography variant="h6">Status ändern</Typography>
+        </Box>
+      </DialogTitle>
+      
+      <DialogContent sx={{ pt: 3 }}>
+        <Grid container spacing={3}>
           <Grid item xs={12}>
-            <FormControl fullWidth>
-              <InputLabel>Status</InputLabel>
-              <Select value={status} onChange={(e) => setStatus(e.target.value)}>
-                <MenuItem value={STATUS.FREE}>Frei</MenuItem>
-                <MenuItem value={STATUS.OVERLOADED}>Ausgelastet</MenuItem>
-                <MenuItem value={STATUS.LIMITED}>Eingeschränkt</MenuItem>
-                <MenuItem value={STATUS.INCAPACITATED}>Handlungsunfähig</MenuItem>
-              </Select>
-            </FormControl>
+            <Typography variant="subtitle2" gutterBottom sx={{ ml: 1, fontWeight: 'bold' }}>
+              Neuen Status wählen
+            </Typography>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+              {statusOptions.map(option => (
+                <Button
+                  key={option.value}
+                  variant={status === option.value ? "contained" : "outlined"}
+                  onClick={() => setStatus(option.value)}
+                  startIcon={option.icon}
+                  sx={{ 
+                    borderColor: option.color,
+                    backgroundColor: status === option.value ? option.color : 'transparent',
+                    color: status === option.value ? '#fff' : option.color,
+                    '&:hover': {
+                      backgroundColor: status === option.value ? option.color : `${option.color}22`,
+                      borderColor: option.color
+                    },
+                    flexGrow: 1,
+                    minWidth: '120px',
+                    textTransform: 'none'
+                  }}
+                >
+                  {option.label}
+                </Button>
+              ))}
+            </Box>
           </Grid>
           
           <Grid item xs={12}>
             <TextField
               fullWidth
-              label="Auftrag von *"
+              label="Auftrag von"
               value={orderedBy}
               onChange={(e) => setOrderedBy(e.target.value)}
               required
+              error={submitAttempted && !orderedBy.trim()}
+              helperText={submitAttempted && !orderedBy.trim() ? 'Bitte geben Sie an, von wem der Auftrag kommt' : ''}
+              placeholder="z.B. Leitstellendisponent, Arzt vom Dienst"
+              InputProps={{
+                startAdornment: (
+                  <Box sx={{ mr: 1, color: 'text.secondary' }}>👤</Box>
+                ),
+              }}
             />
           </Grid>
           
@@ -1231,6 +1297,12 @@ function StatusDialog({ open, onClose, onSubmit, currentData }) {
               onChange={(e) => setComment(e.target.value)}
               multiline
               rows={3}
+              placeholder="Grund für Statusänderung (optional)"
+              InputProps={{
+                startAdornment: (
+                  <Box sx={{ mr: 1, mt: 1, color: 'text.secondary' }}>💬</Box>
+                ),
+              }}
             />
           </Grid>
           
@@ -1240,16 +1312,50 @@ function StatusDialog({ open, onClose, onSubmit, currentData }) {
                 <Checkbox 
                   checked={skipAutoFree} 
                   onChange={(e) => setSkipAutoFree(e.target.checked)} 
+                  color="primary"
                 />
               }
-              label="Nächste automatische Freimeldung überspringen"
+              label={
+                <Typography variant="body2">
+                  Nächste automatische Freimeldung überspringen
+                  <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
+                    Der Status bleibt erhalten und wird nicht automatisch zurückgesetzt
+                  </Typography>
+                </Typography>
+              }
             />
           </Grid>
         </Grid>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Abbrechen</Button>
-        <Button onClick={handleSubmit} variant="contained">Speichern</Button>
+      
+      <DialogActions sx={{ p: 3, borderTop: '1px solid #eee', justifyContent: 'space-between' }}>
+        <Button 
+          onClick={onClose}
+          sx={{ 
+            textTransform: 'none',
+            color: 'text.secondary'
+          }}
+        >
+          Abbrechen
+        </Button>
+        <Button 
+          onClick={handleSubmit} 
+          variant="contained" 
+          startIcon={<Save />}
+          sx={{ 
+            borderRadius: 2,
+            px: 3,
+            py: 1,
+            backgroundColor: selectedStatus.color,
+            '&:hover': {
+              backgroundColor: selectedStatus.color + 'dd',
+            },
+            textTransform: 'none',
+            fontWeight: 'bold'
+          }}
+        >
+          Als {selectedStatus.label} speichern
+        </Button>
       </DialogActions>
     </Dialog>
   );
@@ -1291,7 +1397,7 @@ function LegendDialog({ open, onClose, blackWhiteMode, hospitals, capacities, se
         description: 'Es liegt mindestens eine geplante zukünftige Auslastung vor',
         icon: <AccessTime />,
         priority: 'info',
-        example: 'UKD - Stroke Unit: Erwartete Überlastung ab 14:00'
+        example: 'UKD - Stroke Neurologie: Erwartete Überlastung ab 14:00'
       },
       { 
         pattern: 'striped', 
