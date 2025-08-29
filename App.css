@@ -1,0 +1,441 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  padding: 20px;
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Optimiertes Layout für vollständige Abteilungsnamen */
+.matrix-cell {
+  transition: all 0.3s ease;
+  position: relative;
+  min-height: 50px !important;
+  min-width: 90px !important;
+}
+
+.matrix-cell:hover {
+  transform: scale(1.08);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+  z-index: 15;
+  border: 2px solid #fff !important;
+}
+
+.pva-bubble {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  color: white;
+  animation: pulse-pva 2s infinite;
+}
+
+.refresh-blink {
+  animation: blink 1s ease-in-out;
+}
+
+@keyframes blink {
+  0%, 50% { border-color: #f44336; }
+  25%, 75% { border-color: transparent; }
+}
+
+@keyframes pulse-pva {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); box-shadow: 0 0 10px rgba(244, 67, 54, 0.6); }
+  100% { transform: scale(1); }
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+.striped-pattern {
+  background: repeating-linear-gradient(
+    45deg,
+    #4caf50,
+    #4caf50 10px,
+    #ffffff 10px,
+    #ffffff 20px
+  ) !important;
+}
+
+/* Leitstellen-optimierte Verbesserungen für bessere Sichtbarkeit */
+.leitstelle-dashboard {
+  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+  color: white;
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.matrix-table {
+  border-spacing: 2px;
+  border-collapse: separate;
+}
+
+.matrix-table th {
+  background-color: #f5f5f5 !important;
+  font-weight: bold !important;
+  font-size: 0.9rem !important;
+  padding: 12px 8px !important;
+}
+
+.matrix-table td {
+  padding: 0 !important;
+  border: 1px solid #e0e0e0;
+}
+
+.hospital-cell {
+  background-color: #fafafa !important;
+  font-weight: bold !important;
+  min-width: 70px !important;
+  max-width: 80px !important;
+  padding: 4px 6px !important;
+}
+
+.status-cell {
+  min-width: 90px !important;
+  max-width: 90px !important;
+  min-height: 50px !important;
+  max-height: 50px !important;
+}
+
+/* Kompakte PVA Bubbles */
+.pva-bubble-enhanced {
+  border: 1px solid white !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.4) !important;
+  min-width: 14px !important;
+  height: 14px !important;
+  font-size: 0.65rem !important;
+  font-weight: bold !important;
+}
+
+/* Verbesserte Hover-Effekte für Leitstellen */
+.matrix-cell-enhanced:hover {
+  transform: scale(1.1) !important;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.5) !important;
+  border: 3px solid #fff !important;
+  z-index: 20 !important;
+}
+
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-free {
+  background: #4caf50;
+  color: white;
+}
+
+.status-limited {
+  background: #ff9800;
+  color: white;
+}
+
+.status-overloaded {
+  background: #f44336;
+  color: white;
+}
+
+.status-incapacitated {
+  background: #000000;
+  color: white;
+}
+
+.status-inactive {
+  background: repeating-linear-gradient(
+    45deg,
+    #4caf50,
+    #4caf50 8px,
+    #ffffff 8px,
+    #ffffff 16px
+  );
+  color: #333;
+}
+
+/* Responsive Design für Leitstellen-Tablets */
+@media (max-width: 1200px) {
+  .matrix-table {
+    font-size: 14px;
+  }
+  
+  .matrix-cell {
+    min-height: 50px;
+  }
+  
+  .pva-bubble {
+    min-width: 18px;
+    height: 18px;
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 768px) {
+  .matrix-table {
+    font-size: 12px;
+  }
+  
+  .matrix-cell {
+    min-height: 40px;
+  }
+  
+  .hospital-name {
+    font-size: 0.8rem;
+  }
+}
+
+/* Vollbild-Modus für Leitstellen-Displays */
+.fullscreen-mode {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 9999 !important;
+  background: white !important;
+  overflow: auto !important;
+}
+
+/* Schwarz-Weiß-Modus für bessere Lesbarkeit */
+.black-white-mode .matrix-cell {
+  filter: grayscale(100%) contrast(120%);
+}
+
+.black-white-mode .status-indicator {
+  background: #333 !important;
+  color: white !important;
+}
+
+/* Tooltip Styles für bessere Lesbarkeit */
+.custom-tooltip {
+  max-width: 350px !important;
+  font-size: 14px !important;
+  background: rgba(0, 0, 0, 0.9) !important;
+  border-radius: 8px !important;
+}
+
+/* Dialog Styles für Leitstellen-Workflows */
+.status-dialog {
+  min-width: 500px;
+}
+
+.pva-dialog {
+  min-width: 800px;
+}
+
+.legend-dialog {
+  min-width: 700px;
+}
+
+.admin-dialog {
+  min-width: 900px;
+}
+
+/* Auto-Refresh Indikator */
+.auto-refresh-indicator {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  background: linear-gradient(45deg, #4caf50, #45a049);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  animation: pulse 2s infinite;
+}
+
+/* PVA Kategorien mit besserer Visualisierung */
+.pva-category-1 { 
+  background: linear-gradient(45deg, #f44336, #d32f2f);
+  color: white;
+} 
+
+.pva-category-2 { 
+  background: linear-gradient(45deg, #ff9800, #f57c00);
+  color: white;
+} 
+
+.pva-category-3 { 
+  background: linear-gradient(45deg, #4caf50, #388e3c);
+  color: white;
+}
+
+/* Status-Update Animationen */
+.status-update-animation {
+  animation: statusUpdate 1.5s ease-in-out;
+}
+
+@keyframes statusUpdate {
+  0% { transform: scale(1); box-shadow: none; }
+  25% { transform: scale(1.1); box-shadow: 0 0 20px rgba(33, 150, 243, 0.6); }
+  50% { transform: scale(1.05); box-shadow: 0 0 15px rgba(33, 150, 243, 0.4); }
+  75% { transform: scale(1.02); box-shadow: 0 0 10px rgba(33, 150, 243, 0.2); }
+  100% { transform: scale(1); box-shadow: none; }
+}
+
+/* Notfall-Blinken für kritische Status */
+.emergency-blink {
+  animation: emergencyBlink 1s ease-in-out infinite;
+}
+
+@keyframes emergencyBlink {
+  0% { background-color: #f44336; }
+  50% { background-color: #ff1744; }
+  100% { background-color: #f44336; }
+}
+
+/* High-Contrast Mode für bessere Barrierefreiheit */
+.high-contrast {
+  filter: contrast(150%) brightness(110%);
+}
+
+.large-text {
+  font-size: 1.25em !important;
+}
+
+/* Druckoptimierung */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .matrix-table {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  
+  .matrix-cell {
+    border: 2px solid #000 !important;
+    background: white !important;
+    color: black !important;
+  }
+  
+  .status-indicator {
+    border: 1px solid #000 !important;
+    background: white !important;
+    color: black !important;
+  }
+}
+
+/* Smooth Transitions für alle interaktiven Elemente */
+.MuiButton-root,
+.MuiIconButton-root,
+.MuiChip-root,
+.MuiFab-root {
+  transition: all 0.2s ease-in-out !important;
+}
+
+.MuiButton-root:hover,
+.MuiIconButton-root:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+/* Status Cards für Dashboard */
+.status-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+}
+
+.status-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+/* Breadcrumb Styling */
+.breadcrumb-container {
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+/* Loading States */
+.loading-skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Focus States für Accessibility */
+.MuiButton-root:focus,
+.MuiIconButton-root:focus,
+.matrix-cell:focus {
+  outline: 2px solid #2196f3;
+  outline-offset: 2px;
+}
+
+/* Mobile-First Optimierungen */
+@media (max-width: 480px) {
+  .matrix-table {
+    font-size: 10px;
+  }
+  
+  .hospital-name {
+    writing-mode: horizontal-tb;
+    font-size: 0.7rem;
+  }
+  
+  .matrix-cell {
+    min-height: 35px;
+    padding: 2px;
+  }
+  
+  .status-cards-container {
+    flex-direction: column;
+  }
+  
+  .floating-action-button {
+    bottom: 80px !important;
+    right: 16px !important;
+  }
+}
