@@ -1,222 +1,159 @@
-# React (JavaScript) Programmier- und Style-Richtlinien
+# React (JavaScript) und Material-UI (MUI) - Programmier- und Style-Richtlinien
 
 ## Inhaltsverzeichnis
 1. [Allgemeine Prinzipien](#allgemeine-prinzipien)
-2. [Datei- und Ordnerstruktur](#datei--und-ordnerstruktur)
-3. [Namenskonventionen](#namenskonventionen)
-4. [Komponenten-Richtlinien](#komponenten-richtlinien)
-5. [State Management](#state-management)
-6. [Props und PropTypes](#props-und-proptypes)
-7. [Event Handling](#event-handling)
-8. [Styling](#styling)
-9. [Performance](#performance)
-10. [Testing](#testing)
-11. [Code-Formatierung](#code-formatierung)
+2. [React Richtlinien](#react-richtlinien)
+3. [Material-UI (MUI) Richtlinien](#material-ui-mui-richtlinien)
+4. [Code-Struktur und Organisation](#code-struktur-und-organisation)
+5. [Styling Guidelines](#styling-guidelines)
+6. [Performance Best Practices](#performance-best-practices)
+7. [Testing Guidelines](#testing-guidelines)
 
 ## Allgemeine Prinzipien
 
-### DRY (Don't Repeat Yourself)
-- Wiederverwendbare Komponenten erstellen
-- Gemeinsame Logik in Custom Hooks auslagern
-- Konstanten und Konfigurationen zentralisieren
+### Code-Qualität
+- **Lesbarkeit vor Cleverness**: Schreibe Code, der einfach zu verstehen ist
+- **DRY (Don't Repeat Yourself)**: Vermeide Code-Duplikation
+- **SOLID Prinzipien**: Befolge die SOLID-Prinzipien der Softwareentwicklung
+- **Konsistenz**: Halte dich an einheitliche Coding-Standards
 
-### Single Responsibility Principle
-- Jede Komponente sollte nur eine Aufgabe haben
-- Große Komponenten in kleinere aufteilen
-- Klare Trennung von UI und Geschäftslogik
-
-### Composition over Inheritance
-- Komponenten durch Komposition erweitern
-- Higher-Order Components (HOCs) sparsam verwenden
-- Render Props Pattern nutzen wo sinnvoll
-
-## Datei- und Ordnerstruktur
-
-### Projektstruktur
-```
-src/
-├── components/           # Wiederverwendbare UI-Komponenten
-│   ├── common/          # Globale Komponenten
-│   └── specific/        # Spezifische Komponenten
-├── pages/               # Seiten-Komponenten
-├── hooks/               # Custom Hooks
-├── context/             # React Context
-├── services/            # API-Services
-├── utils/               # Hilfsfunktionen
-├── constants/           # Konstanten
-├── styles/              # Globale Styles
-└── assets/              # Bilder, Icons, etc.
-```
-
-### Dateinamen
-- **Komponenten**: PascalCase (`UserProfile.js`)
-- **Hooks**: camelCase mit "use" Präfix (`useUserData.js`)
-- **Services**: camelCase (`apiService.js`)
-- **Utils**: camelCase (`formatUtils.js`)
-
-## Namenskonventionen
-
-### Komponenten
+### Naming Conventions
 ```javascript
-// ✅ Gut - PascalCase
-const UserProfile = () => {
-  return <div>Profile</div>;
-};
+// Komponenten: PascalCase
+const UserProfile = () => {};
+const NavigationBar = () => {};
 
-// ❌ Schlecht - camelCase
-const userProfile = () => {
-  return <div>Profile</div>;
-};
-```
-
-### Variablen und Funktionen
-```javascript
-// ✅ Gut
-const userName = 'John';
+// Funktionen und Variablen: camelCase
 const getUserData = () => {};
-const isUserLoggedIn = true;
+const isAuthenticated = true;
 
-// ❌ Schlecht
-const UserName = 'John';
-const GetUserData = () => {};
-const user_logged_in = true;
-```
-
-### Konstanten
-```javascript
-// ✅ Gut
+// Konstanten: SCREAMING_SNAKE_CASE
 const API_BASE_URL = 'https://api.example.com';
 const MAX_RETRY_ATTEMPTS = 3;
+
+// Dateien: kebab-case oder camelCase
+// user-profile.jsx oder userProfile.jsx
 ```
 
-## Komponenten-Richtlinien
+## React Richtlinien
 
-### Funktionale Komponenten bevorzugen
+### 1. Funktionale Komponenten und Hooks
+
+**Bevorzuge funktionale Komponenten:**
 ```javascript
-// ✅ Gut - Funktionale Komponente
+// ✅ Gut
 const UserCard = ({ user }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  
   return (
-    <div className="user-card">
-      <h3>{user.name}</h3>
-      <p>{user.email}</p>
-    </div>
+    <Card>
+      <CardContent>
+        <Typography variant="h6">{user.name}</Typography>
+      </CardContent>
+    </Card>
   );
 };
 
-// ❌ Vermeiden - Klassen-Komponente (nur wenn notwendig)
+// ❌ Vermeide Klassenkomponenten (außer bei Error Boundaries)
 class UserCard extends Component {
-  render() {
-    return (
-      <div className="user-card">
-        <h3>{this.props.user.name}</h3>
-        <p>{this.props.user.email}</p>
-      </div>
-    );
-  }
+  // ...
 }
 ```
 
-### Komponenten-Struktur
+### 2. Props und PropTypes
+
+**Verwende PropTypes oder TypeScript:**
 ```javascript
-import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import './UserProfile.css';
 
-const UserProfile = ({ userId, onUserUpdate }) => {
-  // State declarations
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+const UserCard = ({ user, onEdit, isEditable = false }) => {
+  // Component logic
+};
 
-  // Effects
-  useEffect(() => {
-    fetchUser(userId);
-  }, [userId]);
+UserCard.propTypes = {
+  user: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
+    email: PropTypes.string.isRequired,
+  }).isRequired,
+  onEdit: PropTypes.func,
+  isEditable: PropTypes.bool,
+};
 
-  // Event handlers
-  const handleUserUpdate = (updatedUser) => {
-    setUser(updatedUser);
-    onUserUpdate(updatedUser);
+UserCard.defaultProps = {
+  onEdit: () => {},
+  isEditable: false,
+};
+```
+
+### 3. State Management
+
+**useState für lokalen State:**
+```javascript
+const ContactForm = () => {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    message: ''
+  });
+
+  const handleInputChange = (field) => (event) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: event.target.value
+    }));
   };
 
-  // Helper functions
-  const fetchUser = async (id) => {
-    setLoading(true);
-    try {
-      const userData = await getUserById(id);
-      setUser(userData);
-    } catch (error) {
-      console.error('Error fetching user:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Early returns
-  if (loading) return <div>Loading...</div>;
-  if (!user) return <div>User not found</div>;
-
-  // Main render
   return (
-    <div className="user-profile">
-      <h2>{user.name}</h2>
-      <p>{user.email}</p>
-      <button onClick={() => handleUserUpdate(user)}>
-        Update User
-      </button>
-    </div>
+    // Form JSX
   );
 };
-
-UserProfile.propTypes = {
-  userId: PropTypes.string.isRequired,
-  onUserUpdate: PropTypes.func
-};
-
-UserProfile.defaultProps = {
-  onUserUpdate: () => {}
-};
-
-export default UserProfile;
 ```
 
-## State Management
-
-### Local State mit useState
+**useReducer für komplexeren State:**
 ```javascript
-// ✅ Gut - Einfacher State
-const [count, setCount] = useState(0);
-const [user, setUser] = useState(null);
+const initialState = {
+  items: [],
+  loading: false,
+  error: null
+};
 
-// ✅ Gut - Objekt-State mit Spread-Operator
-const [formData, setFormData] = useState({
-  name: '',
-  email: ''
-});
+const itemsReducer = (state, action) => {
+  switch (action.type) {
+    case 'FETCH_START':
+      return { ...state, loading: true, error: null };
+    case 'FETCH_SUCCESS':
+      return { ...state, loading: false, items: action.payload };
+    case 'FETCH_ERROR':
+      return { ...state, loading: false, error: action.payload };
+    default:
+      return state;
+  }
+};
 
-const updateFormField = (field, value) => {
-  setFormData(prev => ({
-    ...prev,
-    [field]: value
-  }));
+const ItemsList = () => {
+  const [state, dispatch] = useReducer(itemsReducer, initialState);
+  // Component logic
 };
 ```
 
-### Custom Hooks für komplexe Logik
+### 4. Effect Hooks
+
+**Korrekte useEffect Verwendung:**
 ```javascript
-// hooks/useUserData.js
-const useUserData = (userId) => {
+const UserProfile = ({ userId }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
+  // Effect mit Dependency Array
   useEffect(() => {
     const fetchUser = async () => {
       try {
         setLoading(true);
-        const userData = await getUserById(userId);
+        const userData = await api.getUser(userId);
         setUser(userData);
-      } catch (err) {
-        setError(err.message);
+      } catch (error) {
+        console.error('Failed to fetch user:', error);
       } finally {
         setLoading(false);
       }
@@ -225,279 +162,575 @@ const useUserData = (userId) => {
     if (userId) {
       fetchUser();
     }
-  }, [userId]);
+  }, [userId]); // Dependency Array
 
-  return { user, loading, error };
+  // Cleanup Effect
+  useEffect(() => {
+    const timer = setInterval(() => {
+      // Some periodic task
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  if (loading) return <CircularProgress />;
+  if (!user) return <Typography>User not found</Typography>;
+
+  return <UserDisplay user={user} />;
 };
 ```
 
-### Context für globalen State
+### 5. Custom Hooks
+
+**Erstelle wiederverwendbare Custom Hooks:**
 ```javascript
-// context/UserContext.js
-const UserContext = createContext();
+// hooks/useApi.js
+const useApi = (url, options = {}) => {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-export const UserProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await fetch(url, options);
+      const result = await response.json();
+      setData(result);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [url, options]);
 
-  const login = async (credentials) => {
-    const userData = await authenticate(credentials);
-    setUser(userData);
-  };
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
-  const logout = () => {
-    setUser(null);
-  };
+  return { data, loading, error, refetch: fetchData };
+};
 
+// Verwendung
+const UsersList = () => {
+  const { data: users, loading, error } = useApi('/api/users');
+  
+  if (loading) return <CircularProgress />;
+  if (error) return <Alert severity="error">{error}</Alert>;
+  
   return (
-    <UserContext.Provider value={{ user, login, logout }}>
-      {children}
-    </UserContext.Provider>
+    <List>
+      {users?.map(user => (
+        <UserListItem key={user.id} user={user} />
+      ))}
+    </List>
   );
 };
+```
 
-export const useUser = () => {
-  const context = useContext(UserContext);
-  if (!context) {
-    throw new Error('useUser must be used within UserProvider');
-  }
-  return context;
+## Material-UI (MUI) Richtlinien
+
+### 1. Theme Setup
+
+**Erstelle ein konsistentes Theme:**
+```javascript
+// theme.js
+import { createTheme } from '@mui/material/styles';
+
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#1976d2',
+      light: '#42a5f5',
+      dark: '#1565c0',
+    },
+    secondary: {
+      main: '#dc004e',
+    },
+    background: {
+      default: '#f5f5f5',
+    },
+  },
+  typography: {
+    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+    h1: {
+      fontSize: '2.5rem',
+      fontWeight: 500,
+    },
+    h2: {
+      fontSize: '2rem',
+      fontWeight: 500,
+    },
+  },
+  spacing: 8, // Standard spacing unit
+  shape: {
+    borderRadius: 8,
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: 'none', // Keine automatische Großschreibung
+          borderRadius: 8,
+        },
+      },
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+        },
+      },
+    },
+  },
+});
+
+export default theme;
+```
+
+### 2. Responsive Design
+
+**Verwende MUI's Breakpoint System:**
+```javascript
+import { useTheme, useMediaQuery } from '@mui/material';
+import { Box, Grid, Container } from '@mui/material';
+
+const ResponsiveLayout = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
+  return (
+    <Container maxWidth="lg">
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={8}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', md: 'row' },
+              gap: 2,
+              p: { xs: 2, md: 3 },
+            }}
+          >
+            {/* Content */}
+          </Box>
+        </Grid>
+        <Grid item xs={12} md={4}>
+          {/* Sidebar */}
+        </Grid>
+      </Grid>
+    </Container>
+  );
 };
 ```
 
-## Props und PropTypes
+### 3. Styled Components vs sx prop
 
-### PropTypes verwenden
+**Bevorzuge sx prop für einfache Styles:**
 ```javascript
-import PropTypes from 'prop-types';
+// ✅ Gut für einfache Styles
+<Button
+  sx={{
+    bgcolor: 'primary.main',
+    color: 'white',
+    '&:hover': {
+      bgcolor: 'primary.dark',
+    },
+    mb: 2,
+  }}
+>
+  Click me
+</Button>
 
-const UserCard = ({ user, showEmail, onEdit }) => {
+// ✅ Styled Components für komplexere oder wiederverwendbare Styles
+import { styled } from '@mui/material/styles';
+
+const StyledCard = styled(Card)(({ theme }) => ({
+  padding: theme.spacing(3),
+  margin: theme.spacing(2, 0),
+  transition: theme.transitions.create(['transform', 'box-shadow']),
+  '&:hover': {
+    transform: 'translateY(-2px)',
+    boxShadow: theme.shadows[8],
+  },
+  [theme.breakpoints.down('md')]: {
+    padding: theme.spacing(2),
+  },
+}));
+```
+
+### 4. Icon Usage
+
+**Konsistente Icon-Verwendung:**
+```javascript
+import {
+  Add as AddIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  Search as SearchIcon,
+} from '@mui/icons-material';
+
+const ActionBar = ({ onAdd, onEdit, onDelete }) => (
+  <Box sx={{ display: 'flex', gap: 1 }}>
+    <IconButton onClick={onAdd} color="primary" aria-label="add">
+      <AddIcon />
+    </IconButton>
+    <IconButton onClick={onEdit} color="default" aria-label="edit">
+      <EditIcon />
+    </IconButton>
+    <IconButton onClick={onDelete} color="error" aria-label="delete">
+      <DeleteIcon />
+    </IconButton>
+  </Box>
+);
+```
+
+### 5. Form Components
+
+**Strukturierte Formular-Implementierung:**
+```javascript
+import {
+  TextField,
+  Button,
+  FormControl,
+  FormHelperText,
+  InputLabel,
+  Select,
+  MenuItem,
+} from '@mui/material';
+
+const ContactForm = () => {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    subject: '',
+    message: '',
+  });
+  const [errors, setErrors] = useState({});
+
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!formData.name.trim()) {
+      newErrors.name = 'Name ist erforderlich';
+    }
+    
+    if (!formData.email.trim()) {
+      newErrors.email = 'E-Mail ist erforderlich';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'E-Mail-Format ist ungültig';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    if (validateForm()) {
+      // Submit logic
+    }
+  };
+
   return (
-    <div className="user-card">
-      <h3>{user.name}</h3>
-      {showEmail && <p>{user.email}</p>}
-      <button onClick={() => onEdit(user.id)}>Edit</button>
-    </div>
+    <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
+      <TextField
+        fullWidth
+        label="Name"
+        value={formData.name}
+        onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+        error={!!errors.name}
+        helperText={errors.name}
+        margin="normal"
+        required
+      />
+      
+      <TextField
+        fullWidth
+        label="E-Mail"
+        type="email"
+        value={formData.email}
+        onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+        error={!!errors.email}
+        helperText={errors.email}
+        margin="normal"
+        required
+      />
+      
+      <FormControl fullWidth margin="normal">
+        <InputLabel>Betreff</InputLabel>
+        <Select
+          value={formData.subject}
+          onChange={(e) => setFormData(prev => ({ ...prev, subject: e.target.value }))}
+        >
+          <MenuItem value="support">Support</MenuItem>
+          <MenuItem value="feedback">Feedback</MenuItem>
+          <MenuItem value="other">Sonstiges</MenuItem>
+        </Select>
+      </FormControl>
+      
+      <TextField
+        fullWidth
+        label="Nachricht"
+        multiline
+        rows={4}
+        value={formData.message}
+        onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
+        margin="normal"
+      />
+      
+      <Button
+        type="submit"
+        variant="contained"
+        size="large"
+        sx={{ mt: 2 }}
+        fullWidth
+      >
+        Senden
+      </Button>
+    </Box>
+  );
+};
+```
+
+## Code-Struktur und Organisation
+
+### Projekt-Struktur
+```
+src/
+├── components/           # Wiederverwendbare Komponenten
+│   ├── common/          # Allgemeine Komponenten
+│   │   ├── Button/
+│   │   ├── Modal/
+│   │   └── Layout/
+│   └── forms/           # Formular-Komponenten
+├── pages/               # Seiten-Komponenten
+├── hooks/               # Custom Hooks
+├── utils/               # Utility-Funktionen
+├── services/            # API Services
+├── contexts/            # React Contexts
+├── constants/           # Konstanten
+├── styles/              # Global Styles und Theme
+└── __tests__/           # Test-Dateien
+```
+
+### Komponentenstruktur
+```javascript
+// components/UserCard/UserCard.jsx
+import React from 'react';
+import PropTypes from 'prop-types';
+import { Card, CardContent, Typography, Avatar } from '@mui/material';
+import { styled } from '@mui/material/styles';
+
+const StyledCard = styled(Card)(({ theme }) => ({
+  // Styles
+}));
+
+const UserCard = ({ user, onClick }) => {
+  // Component logic
+  
+  return (
+    <StyledCard onClick={onClick}>
+      {/* JSX */}
+    </StyledCard>
   );
 };
 
 UserCard.propTypes = {
-  user: PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    name: PropTypes.string.isRequired,
-    email: PropTypes.string.isRequired
-  }).isRequired,
-  showEmail: PropTypes.bool,
-  onEdit: PropTypes.func.isRequired
+  // PropTypes
 };
 
-UserCard.defaultProps = {
-  showEmail: true
-};
+export default UserCard;
 ```
 
-### Props Destructuring
+## Styling Guidelines
+
+### 1. Theme-basierte Styles
 ```javascript
-// ✅ Gut - Props destructuring
-const UserProfile = ({ user, isEditable, onSave }) => {
-  // ...
-};
-
-// ❌ Schlecht - Props object verwenden
-const UserProfile = (props) => {
-  return <div>{props.user.name}</div>;
-};
-```
-
-## Event Handling
-
-### Event Handler Benennung
-```javascript
-// ✅ Gut - "handle" Präfix
-const handleSubmit = (event) => {
-  event.preventDefault();
-  // Handle form submission
-};
-
-const handleUserClick = (userId) => {
-  // Handle user click
-};
-
-// Verwendung
-<form onSubmit={handleSubmit}>
-  <button onClick={() => handleUserClick(user.id)}>
-    Click me
-  </button>
-</form>
-```
-
-### Inline Functions vermeiden
-```javascript
-// ✅ Gut
-const handleDelete = useCallback((id) => {
-  deleteUser(id);
-}, []);
-
-return (
-  <button onClick={() => handleDelete(user.id)}>
-    Delete
-  </button>
-);
-
-// ❌ Schlecht - Performance-Problem
-return (
-  <button onClick={() => deleteUser(user.id)}>
-    Delete
-  </button>
+// Verwende Theme-Werte
+const MyComponent = () => (
+  <Box
+    sx={{
+      p: 2,                    // theme.spacing(2)
+      bgcolor: 'primary.main', // theme.palette.primary.main
+      borderRadius: 1,         // theme.shape.borderRadius
+      boxShadow: 2,           // theme.shadows[2]
+    }}
+  >
+    Content
+  </Box>
 );
 ```
 
-## Styling
-
-### CSS Modules bevorzugen
+### 2. Konsistente Spacing
 ```javascript
-// UserCard.module.css
-.userCard {
-  padding: 1rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-}
-
-.userName {
-  font-size: 1.2rem;
-  font-weight: bold;
-}
-
-// UserCard.js
-import styles from './UserCard.module.css';
-
-const UserCard = ({ user }) => {
-  return (
-    <div className={styles.userCard}>
-      <h3 className={styles.userName}>{user.name}</h3>
-    </div>
-  );
+// Verwende das 8px Grid System
+const spacing = {
+  xs: 0.5, // 4px
+  sm: 1,   // 8px
+  md: 2,   // 16px
+  lg: 3,   // 24px
+  xl: 4,   // 32px
 };
+
+<Box sx={{ p: spacing.md, m: spacing.sm }}>
+  Content
+</Box>
 ```
 
-### Conditional Styling
+### 3. Color Palette
 ```javascript
-import classNames from 'classnames';
-
-const Button = ({ variant, disabled, children }) => {
-  const buttonClass = classNames(
-    'button',
-    {
-      'button--primary': variant === 'primary',
-      'button--secondary': variant === 'secondary',
-      'button--disabled': disabled
-    }
-  );
-
-  return (
-    <button className={buttonClass} disabled={disabled}>
-      {children}
-    </button>
-  );
-};
+// Verwende Palette-Farben statt hardcodierte Werte
+<Typography
+  sx={{
+    color: 'text.primary',      // Statt '#000'
+    bgcolor: 'background.paper', // Statt '#fff'
+  }}
+>
+  Text
+</Typography>
 ```
 
-## Performance
+## Performance Best Practices
 
-### React.memo für reine Komponenten
+### 1. Memoization
 ```javascript
-const UserCard = React.memo(({ user, onEdit }) => {
-  return (
-    <div>
-      <h3>{user.name}</h3>
-      <button onClick={() => onEdit(user.id)}>Edit</button>
-    </div>
-  );
+// React.memo für Komponenten
+const ExpensiveComponent = React.memo(({ data }) => {
+  return <ComplexVisualization data={data} />;
 });
-```
 
-### useCallback und useMemo
-```javascript
-const UserList = ({ users, filter }) => {
-  // Memoize expensive calculations
-  const filteredUsers = useMemo(() => {
-    return users.filter(user => 
-      user.name.toLowerCase().includes(filter.toLowerCase())
-    );
-  }, [users, filter]);
+// useMemo für schwere Berechnungen
+const ProcessedData = ({ items }) => {
+  const expensiveValue = useMemo(() => {
+    return items.reduce((acc, item) => {
+      // Schwere Berechnung
+      return acc + complexCalculation(item);
+    }, 0);
+  }, [items]);
 
-  // Memoize event handlers
-  const handleUserEdit = useCallback((userId) => {
-    // Edit logic
+  return <div>{expensiveValue}</div>;
+};
+
+// useCallback für Funktionen
+const ParentComponent = () => {
+  const [count, setCount] = useState(0);
+  
+  const handleClick = useCallback(() => {
+    setCount(prev => prev + 1);
   }, []);
 
-  return (
-    <div>
-      {filteredUsers.map(user => (
-        <UserCard 
-          key={user.id} 
-          user={user} 
-          onEdit={handleUserEdit} 
-        />
-      ))}
-    </div>
-  );
+  return <ChildComponent onClick={handleClick} />;
 };
 ```
 
-### Lazy Loading
+### 2. Lazy Loading
 ```javascript
-import { lazy, Suspense } from 'react';
+// Code Splitting mit React.lazy
+const LazyComponent = React.lazy(() => import('./LazyComponent'));
 
-const LazyUserProfile = lazy(() => import('./UserProfile'));
-
-const App = () => {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <LazyUserProfile />
-    </Suspense>
-  );
-};
+const App = () => (
+  <Suspense fallback={<CircularProgress />}>
+    <LazyComponent />
+  </Suspense>
+);
 ```
 
-## Testing
-
-### Test-Struktur
+### 3. List Optimierung
 ```javascript
-// UserCard.test.js
+// Verwende keys für Listen
+const ItemsList = ({ items }) => (
+  <List>
+    {items.map(item => (
+      <ListItem key={item.id}>
+        <ListItemText primary={item.name} />
+      </ListItem>
+    ))}
+  </List>
+);
+```
+
+## Testing Guidelines
+
+### 1. Component Testing
+```javascript
+// UserCard.test.jsx
 import { render, screen, fireEvent } from '@testing-library/react';
+import { ThemeProvider } from '@mui/material/styles';
+import theme from '../styles/theme';
 import UserCard from './UserCard';
 
-const mockUser = {
-  id: '1',
-  name: 'John Doe',
-  email: 'john@example.com'
+const renderWithTheme = (component) => {
+  return render(
+    <ThemeProvider theme={theme}>
+      {component}
+    </ThemeProvider>
+  );
 };
 
 describe('UserCard', () => {
-  test('renders user information', () => {
-    render(<UserCard user={mockUser} />);
+  const mockUser = {
+    id: '1',
+    name: 'John Doe',
+    email: 'john@example.com',
+  };
+
+  it('renders user information correctly', () => {
+    renderWithTheme(<UserCard user={mockUser} />);
     
     expect(screen.getByText('John Doe')).toBeInTheDocument();
     expect(screen.getByText('john@example.com')).toBeInTheDocument();
   });
 
-  test('calls onEdit when edit button is clicked', () => {
-    const mockOnEdit = jest.fn();
-    render(<UserCard user={mockUser} onEdit={mockOnEdit} />);
+  it('calls onClick when clicked', () => {
+    const mockOnClick = jest.fn();
+    renderWithTheme(<UserCard user={mockUser} onClick={mockOnClick} />);
     
-    const editButton = screen.getByText('Edit');
-    fireEvent.click(editButton);
-    
-    expect(mockOnEdit).toHaveBeenCalledWith('1');
+    fireEvent.click(screen.getByRole('button'));
+    expect(mockOnClick).toHaveBeenCalledWith(mockUser);
   });
 });
 ```
 
-## Code-Formatierung
+### 2. Hook Testing
+```javascript
+// useApi.test.js
+import { renderHook, waitFor } from '@testing-library/react';
+import { useApi } from './useApi';
 
-### ESLint und Prettier Konfiguration
+// Mock fetch
+global.fetch = jest.fn();
+
+describe('useApi', () => {
+  beforeEach(() => {
+    fetch.mockClear();
+  });
+
+  it('fetches data successfully', async () => {
+    const mockData = { id: 1, name: 'Test' };
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockData,
+    });
+
+    const { result } = renderHook(() => useApi('/api/test'));
+
+    expect(result.current.loading).toBe(true);
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+
+    expect(result.current.data).toEqual(mockData);
+    expect(result.current.error).toBe(null);
+  });
+});
+```
+
+## Code-Qualität Tools
+
+### ESLint Konfiguration
 ```json
-// .eslintrc.js
+// .eslintrc.json
 {
   "extends": [
     "react-app",
@@ -505,114 +738,77 @@ describe('UserCard', () => {
   ],
   "rules": {
     "react/prop-types": "error",
-    "react/jsx-pascal-case": "error",
-    "react/jsx-no-useless-fragment": "error",
+    "react/jsx-uses-react": "error",
+    "react/jsx-uses-vars": "error",
     "react-hooks/rules-of-hooks": "error",
     "react-hooks/exhaustive-deps": "warn"
   }
 }
+```
 
+### Prettier Konfiguration
+```json
 // .prettierrc
 {
   "semi": true,
   "trailingComma": "es5",
   "singleQuote": true,
   "printWidth": 80,
-  "tabWidth": 2,
-  "useTabs": false
+  "tabWidth": 2
 }
 ```
 
-### Import/Export Konventionen
+## Accessibility Guidelines
+
+### 1. ARIA Labels und Semantic HTML
 ```javascript
-// ✅ Gut - Named exports für mehrere exports
-export const UserCard = () => {};
-export const UserList = () => {};
+const AccessibleButton = () => (
+  <Button
+    aria-label="Benutzer hinzufügen"
+    aria-describedby="add-user-description"
+  >
+    <AddIcon />
+  </Button>
+);
 
-// ✅ Gut - Default export für Hauptkomponente
-const UserProfile = () => {};
-export default UserProfile;
-
-// ✅ Gut - Import-Reihenfolge
-import React from 'react';
-import PropTypes from 'prop-types';
-import { useState, useEffect } from 'react';
-
-import { getUserById } from '../services/userService';
-import { formatDate } from '../utils/dateUtils';
-import UserCard from './UserCard';
-
-import './UserProfile.css';
+const AccessibleForm = () => (
+  <form role="form" aria-labelledby="form-title">
+    <Typography id="form-title" variant="h2">
+      Benutzer-Registrierung
+    </Typography>
+    <TextField
+      label="Name"
+      required
+      aria-required="true"
+      aria-describedby="name-helper"
+    />
+    <FormHelperText id="name-helper">
+      Geben Sie Ihren vollständigen Namen ein
+    </FormHelperText>
+  </form>
+);
 ```
 
-### JSX Formatierung
+### 2. Keyboard Navigation
 ```javascript
-// ✅ Gut - Mehrzeilige Props
-<UserCard
-  user={user}
-  showEmail={true}
-  onEdit={handleEdit}
-  onDelete={handleDelete}
-/>
-
-// ✅ Gut - Conditional Rendering
-{isLoggedIn && <UserProfile user={user} />}
-{loading ? <Spinner /> : <UserList users={users} />}
-
-// ✅ Gut - Listen mit Keys
-{users.map(user => (
-  <UserCard key={user.id} user={user} />
-))}
-```
-
-## Weitere Best Practices
-
-### Error Boundaries
-```javascript
-class ErrorBoundary extends Component {
-  constructor(props) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError(error) {
-    return { hasError: true };
-  }
-
-  componentDidCatch(error, errorInfo) {
-    console.error('Error caught by boundary:', error, errorInfo);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return <h1>Something went wrong.</h1>;
+const KeyboardNavigable = () => {
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      handleAction();
     }
+  };
 
-    return this.props.children;
-  }
-}
+  return (
+    <Box
+      role="button"
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+      onClick={handleAction}
+      sx={{ cursor: 'pointer' }}
+    >
+      Klickbares Element
+    </Box>
+  );
+};
 ```
-
-### Environment Variables
-```javascript
-// .env
-REACT_APP_API_URL=https://api.example.com
-REACT_APP_VERSION=1.0.0
-
-// Verwendung
-const apiUrl = process.env.REACT_APP_API_URL;
-```
-
-### Security Best Practices
-```javascript
-// ✅ Gut - XSS Protection
-const sanitizedHTML = DOMPurify.sanitize(userInput);
-
-// ✅ Gut - Environment-spezifische Konfiguration
-const isDevelopment = process.env.NODE_ENV === 'development';
-
-// ❌ Schlecht - Sensitive Daten im Code
-const API_KEY = 'secret-key'; // Niemals!
-```
-
-Diese Richtlinien helfen dabei, sauberen, wartbaren und performanten React-Code zu schreiben. Sie sollten als Grundlage dienen und je nach Projektanforderungen angepasst werden.
