@@ -1,0 +1,618 @@
+# React (JavaScript) Programmier- und Style-Richtlinien
+
+## Inhaltsverzeichnis
+1. [Allgemeine Prinzipien](#allgemeine-prinzipien)
+2. [Datei- und Ordnerstruktur](#datei--und-ordnerstruktur)
+3. [Namenskonventionen](#namenskonventionen)
+4. [Komponenten-Richtlinien](#komponenten-richtlinien)
+5. [State Management](#state-management)
+6. [Props und PropTypes](#props-und-proptypes)
+7. [Event Handling](#event-handling)
+8. [Styling](#styling)
+9. [Performance](#performance)
+10. [Testing](#testing)
+11. [Code-Formatierung](#code-formatierung)
+
+## Allgemeine Prinzipien
+
+### DRY (Don't Repeat Yourself)
+- Wiederverwendbare Komponenten erstellen
+- Gemeinsame Logik in Custom Hooks auslagern
+- Konstanten und Konfigurationen zentralisieren
+
+### Single Responsibility Principle
+- Jede Komponente sollte nur eine Aufgabe haben
+- Große Komponenten in kleinere aufteilen
+- Klare Trennung von UI und Geschäftslogik
+
+### Composition over Inheritance
+- Komponenten durch Komposition erweitern
+- Higher-Order Components (HOCs) sparsam verwenden
+- Render Props Pattern nutzen wo sinnvoll
+
+## Datei- und Ordnerstruktur
+
+### Projektstruktur
+```
+src/
+├── components/           # Wiederverwendbare UI-Komponenten
+│   ├── common/          # Globale Komponenten
+│   └── specific/        # Spezifische Komponenten
+├── pages/               # Seiten-Komponenten
+├── hooks/               # Custom Hooks
+├── context/             # React Context
+├── services/            # API-Services
+├── utils/               # Hilfsfunktionen
+├── constants/           # Konstanten
+├── styles/              # Globale Styles
+└── assets/              # Bilder, Icons, etc.
+```
+
+### Dateinamen
+- **Komponenten**: PascalCase (`UserProfile.js`)
+- **Hooks**: camelCase mit "use" Präfix (`useUserData.js`)
+- **Services**: camelCase (`apiService.js`)
+- **Utils**: camelCase (`formatUtils.js`)
+
+## Namenskonventionen
+
+### Komponenten
+```javascript
+// ✅ Gut - PascalCase
+const UserProfile = () => {
+  return <div>Profile</div>;
+};
+
+// ❌ Schlecht - camelCase
+const userProfile = () => {
+  return <div>Profile</div>;
+};
+```
+
+### Variablen und Funktionen
+```javascript
+// ✅ Gut
+const userName = 'John';
+const getUserData = () => {};
+const isUserLoggedIn = true;
+
+// ❌ Schlecht
+const UserName = 'John';
+const GetUserData = () => {};
+const user_logged_in = true;
+```
+
+### Konstanten
+```javascript
+// ✅ Gut
+const API_BASE_URL = 'https://api.example.com';
+const MAX_RETRY_ATTEMPTS = 3;
+```
+
+## Komponenten-Richtlinien
+
+### Funktionale Komponenten bevorzugen
+```javascript
+// ✅ Gut - Funktionale Komponente
+const UserCard = ({ user }) => {
+  return (
+    <div className="user-card">
+      <h3>{user.name}</h3>
+      <p>{user.email}</p>
+    </div>
+  );
+};
+
+// ❌ Vermeiden - Klassen-Komponente (nur wenn notwendig)
+class UserCard extends Component {
+  render() {
+    return (
+      <div className="user-card">
+        <h3>{this.props.user.name}</h3>
+        <p>{this.props.user.email}</p>
+      </div>
+    );
+  }
+}
+```
+
+### Komponenten-Struktur
+```javascript
+import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
+import './UserProfile.css';
+
+const UserProfile = ({ userId, onUserUpdate }) => {
+  // State declarations
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Effects
+  useEffect(() => {
+    fetchUser(userId);
+  }, [userId]);
+
+  // Event handlers
+  const handleUserUpdate = (updatedUser) => {
+    setUser(updatedUser);
+    onUserUpdate(updatedUser);
+  };
+
+  // Helper functions
+  const fetchUser = async (id) => {
+    setLoading(true);
+    try {
+      const userData = await getUserById(id);
+      setUser(userData);
+    } catch (error) {
+      console.error('Error fetching user:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Early returns
+  if (loading) return <div>Loading...</div>;
+  if (!user) return <div>User not found</div>;
+
+  // Main render
+  return (
+    <div className="user-profile">
+      <h2>{user.name}</h2>
+      <p>{user.email}</p>
+      <button onClick={() => handleUserUpdate(user)}>
+        Update User
+      </button>
+    </div>
+  );
+};
+
+UserProfile.propTypes = {
+  userId: PropTypes.string.isRequired,
+  onUserUpdate: PropTypes.func
+};
+
+UserProfile.defaultProps = {
+  onUserUpdate: () => {}
+};
+
+export default UserProfile;
+```
+
+## State Management
+
+### Local State mit useState
+```javascript
+// ✅ Gut - Einfacher State
+const [count, setCount] = useState(0);
+const [user, setUser] = useState(null);
+
+// ✅ Gut - Objekt-State mit Spread-Operator
+const [formData, setFormData] = useState({
+  name: '',
+  email: ''
+});
+
+const updateFormField = (field, value) => {
+  setFormData(prev => ({
+    ...prev,
+    [field]: value
+  }));
+};
+```
+
+### Custom Hooks für komplexe Logik
+```javascript
+// hooks/useUserData.js
+const useUserData = (userId) => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        setLoading(true);
+        const userData = await getUserById(userId);
+        setUser(userData);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (userId) {
+      fetchUser();
+    }
+  }, [userId]);
+
+  return { user, loading, error };
+};
+```
+
+### Context für globalen State
+```javascript
+// context/UserContext.js
+const UserContext = createContext();
+
+export const UserProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+
+  const login = async (credentials) => {
+    const userData = await authenticate(credentials);
+    setUser(userData);
+  };
+
+  const logout = () => {
+    setUser(null);
+  };
+
+  return (
+    <UserContext.Provider value={{ user, login, logout }}>
+      {children}
+    </UserContext.Provider>
+  );
+};
+
+export const useUser = () => {
+  const context = useContext(UserContext);
+  if (!context) {
+    throw new Error('useUser must be used within UserProvider');
+  }
+  return context;
+};
+```
+
+## Props und PropTypes
+
+### PropTypes verwenden
+```javascript
+import PropTypes from 'prop-types';
+
+const UserCard = ({ user, showEmail, onEdit }) => {
+  return (
+    <div className="user-card">
+      <h3>{user.name}</h3>
+      {showEmail && <p>{user.email}</p>}
+      <button onClick={() => onEdit(user.id)}>Edit</button>
+    </div>
+  );
+};
+
+UserCard.propTypes = {
+  user: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
+    email: PropTypes.string.isRequired
+  }).isRequired,
+  showEmail: PropTypes.bool,
+  onEdit: PropTypes.func.isRequired
+};
+
+UserCard.defaultProps = {
+  showEmail: true
+};
+```
+
+### Props Destructuring
+```javascript
+// ✅ Gut - Props destructuring
+const UserProfile = ({ user, isEditable, onSave }) => {
+  // ...
+};
+
+// ❌ Schlecht - Props object verwenden
+const UserProfile = (props) => {
+  return <div>{props.user.name}</div>;
+};
+```
+
+## Event Handling
+
+### Event Handler Benennung
+```javascript
+// ✅ Gut - "handle" Präfix
+const handleSubmit = (event) => {
+  event.preventDefault();
+  // Handle form submission
+};
+
+const handleUserClick = (userId) => {
+  // Handle user click
+};
+
+// Verwendung
+<form onSubmit={handleSubmit}>
+  <button onClick={() => handleUserClick(user.id)}>
+    Click me
+  </button>
+</form>
+```
+
+### Inline Functions vermeiden
+```javascript
+// ✅ Gut
+const handleDelete = useCallback((id) => {
+  deleteUser(id);
+}, []);
+
+return (
+  <button onClick={() => handleDelete(user.id)}>
+    Delete
+  </button>
+);
+
+// ❌ Schlecht - Performance-Problem
+return (
+  <button onClick={() => deleteUser(user.id)}>
+    Delete
+  </button>
+);
+```
+
+## Styling
+
+### CSS Modules bevorzugen
+```javascript
+// UserCard.module.css
+.userCard {
+  padding: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.userName {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+// UserCard.js
+import styles from './UserCard.module.css';
+
+const UserCard = ({ user }) => {
+  return (
+    <div className={styles.userCard}>
+      <h3 className={styles.userName}>{user.name}</h3>
+    </div>
+  );
+};
+```
+
+### Conditional Styling
+```javascript
+import classNames from 'classnames';
+
+const Button = ({ variant, disabled, children }) => {
+  const buttonClass = classNames(
+    'button',
+    {
+      'button--primary': variant === 'primary',
+      'button--secondary': variant === 'secondary',
+      'button--disabled': disabled
+    }
+  );
+
+  return (
+    <button className={buttonClass} disabled={disabled}>
+      {children}
+    </button>
+  );
+};
+```
+
+## Performance
+
+### React.memo für reine Komponenten
+```javascript
+const UserCard = React.memo(({ user, onEdit }) => {
+  return (
+    <div>
+      <h3>{user.name}</h3>
+      <button onClick={() => onEdit(user.id)}>Edit</button>
+    </div>
+  );
+});
+```
+
+### useCallback und useMemo
+```javascript
+const UserList = ({ users, filter }) => {
+  // Memoize expensive calculations
+  const filteredUsers = useMemo(() => {
+    return users.filter(user => 
+      user.name.toLowerCase().includes(filter.toLowerCase())
+    );
+  }, [users, filter]);
+
+  // Memoize event handlers
+  const handleUserEdit = useCallback((userId) => {
+    // Edit logic
+  }, []);
+
+  return (
+    <div>
+      {filteredUsers.map(user => (
+        <UserCard 
+          key={user.id} 
+          user={user} 
+          onEdit={handleUserEdit} 
+        />
+      ))}
+    </div>
+  );
+};
+```
+
+### Lazy Loading
+```javascript
+import { lazy, Suspense } from 'react';
+
+const LazyUserProfile = lazy(() => import('./UserProfile'));
+
+const App = () => {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LazyUserProfile />
+    </Suspense>
+  );
+};
+```
+
+## Testing
+
+### Test-Struktur
+```javascript
+// UserCard.test.js
+import { render, screen, fireEvent } from '@testing-library/react';
+import UserCard from './UserCard';
+
+const mockUser = {
+  id: '1',
+  name: 'John Doe',
+  email: 'john@example.com'
+};
+
+describe('UserCard', () => {
+  test('renders user information', () => {
+    render(<UserCard user={mockUser} />);
+    
+    expect(screen.getByText('John Doe')).toBeInTheDocument();
+    expect(screen.getByText('john@example.com')).toBeInTheDocument();
+  });
+
+  test('calls onEdit when edit button is clicked', () => {
+    const mockOnEdit = jest.fn();
+    render(<UserCard user={mockUser} onEdit={mockOnEdit} />);
+    
+    const editButton = screen.getByText('Edit');
+    fireEvent.click(editButton);
+    
+    expect(mockOnEdit).toHaveBeenCalledWith('1');
+  });
+});
+```
+
+## Code-Formatierung
+
+### ESLint und Prettier Konfiguration
+```json
+// .eslintrc.js
+{
+  "extends": [
+    "react-app",
+    "react-app/jest"
+  ],
+  "rules": {
+    "react/prop-types": "error",
+    "react/jsx-pascal-case": "error",
+    "react/jsx-no-useless-fragment": "error",
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn"
+  }
+}
+
+// .prettierrc
+{
+  "semi": true,
+  "trailingComma": "es5",
+  "singleQuote": true,
+  "printWidth": 80,
+  "tabWidth": 2,
+  "useTabs": false
+}
+```
+
+### Import/Export Konventionen
+```javascript
+// ✅ Gut - Named exports für mehrere exports
+export const UserCard = () => {};
+export const UserList = () => {};
+
+// ✅ Gut - Default export für Hauptkomponente
+const UserProfile = () => {};
+export default UserProfile;
+
+// ✅ Gut - Import-Reihenfolge
+import React from 'react';
+import PropTypes from 'prop-types';
+import { useState, useEffect } from 'react';
+
+import { getUserById } from '../services/userService';
+import { formatDate } from '../utils/dateUtils';
+import UserCard from './UserCard';
+
+import './UserProfile.css';
+```
+
+### JSX Formatierung
+```javascript
+// ✅ Gut - Mehrzeilige Props
+<UserCard
+  user={user}
+  showEmail={true}
+  onEdit={handleEdit}
+  onDelete={handleDelete}
+/>
+
+// ✅ Gut - Conditional Rendering
+{isLoggedIn && <UserProfile user={user} />}
+{loading ? <Spinner /> : <UserList users={users} />}
+
+// ✅ Gut - Listen mit Keys
+{users.map(user => (
+  <UserCard key={user.id} user={user} />
+))}
+```
+
+## Weitere Best Practices
+
+### Error Boundaries
+```javascript
+class ErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('Error caught by boundary:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <h1>Something went wrong.</h1>;
+    }
+
+    return this.props.children;
+  }
+}
+```
+
+### Environment Variables
+```javascript
+// .env
+REACT_APP_API_URL=https://api.example.com
+REACT_APP_VERSION=1.0.0
+
+// Verwendung
+const apiUrl = process.env.REACT_APP_API_URL;
+```
+
+### Security Best Practices
+```javascript
+// ✅ Gut - XSS Protection
+const sanitizedHTML = DOMPurify.sanitize(userInput);
+
+// ✅ Gut - Environment-spezifische Konfiguration
+const isDevelopment = process.env.NODE_ENV === 'development';
+
+// ❌ Schlecht - Sensitive Daten im Code
+const API_KEY = 'secret-key'; // Niemals!
+```
+
+Diese Richtlinien helfen dabei, sauberen, wartbaren und performanten React-Code zu schreiben. Sie sollten als Grundlage dienen und je nach Projektanforderungen angepasst werden.
