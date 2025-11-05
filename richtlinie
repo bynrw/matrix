@@ -1,240 +1,506 @@
-# React (JavaScript) und Material-UI (MUI) - Programmier- und Style-Richtlinien
+# Programmierrichtlinien & Styleguide für React & Material UI
 
-## Inhaltsverzeichnis
-1. [Allgemeine Prinzipien](#allgemeine-prinzipien)
-2. [React Richtlinien](#react-richtlinien)
-3. [Material-UI (MUI) Richtlinien](#material-ui-mui-richtlinien)
-4. [Code-Struktur und Organisation](#code-struktur-und-organisation)
-5. [Styling Guidelines](#styling-guidelines)
-6. [Performance Best Practices](#performance-best-practices)
-7. [Testing Guidelines](#testing-guidelines)
+## 1. Einleitung
 
-## Allgemeine Prinzipien
+Dieses Dokument definiert die Programmierrichtlinien, Best Practices und den Code-Stil für unser Frontend-Projekt. Ziel ist es, eine konsistente, wartbare und qualitativ hochwertige Codebasis zu schaffen. Die Einhaltung dieser Richtlinien ist für alle Entwickler im Projekt verbindlich.
 
-### Code-Qualität
-- **Lesbarkeit vor Cleverness**: Schreibe Code, der einfach zu verstehen ist
-- **DRY (Don't Repeat Yourself)**: Vermeide Code-Duplikation
-- **SOLID Prinzipien**: Befolge die SOLID-Prinzipien der Softwareentwicklung
-- **Konsistenz**: Halte dich an einheitliche Coding-Standards
+**Technologie-Stack:**
+*   **Sprache:** JavaScript
+*   **UI-Bibliothek:** React
+*   **UI-Framework:** Material UI
 
-### Naming Conventions
-```javascript
-// Komponenten: PascalCase
-const UserProfile = () => {};
-const NavigationBar = () => {};
+---
 
-// Funktionen und Variablen: camelCase
-const getUserData = () => {};
-const isAuthenticated = true;
+## 2. Projektstruktur und Architektur
 
-// Konstanten: SCREAMING_SNAKE_CASE
-const API_BASE_URL = 'https://api.example.com';
-const MAX_RETRY_ATTEMPTS = 3;
+Eine klare und konsistente Projektstruktur ist entscheidend für die Skalierbarkeit und Wartbarkeit der Anwendung.
 
-// Dateien: kebab-case oder camelCase
-// user-profile.jsx oder userProfile.jsx
+### 2.1 Empfohlene Ordnerstruktur
+
+Wir verwenden eine feature-orientierte Struktur, bei der zusammengehörige Dateien (Komponenten, Hooks, Styles) in einem Ordner gebündelt werden, ergänzt durch globale Verzeichnisse.
+
+```
+/src
+├── api/                # API-Layer, Endpunkt-Definitionen, Fetch-Logik
+├── assets/             # Statische Dateien (Bilder, SVGs, Schriftarten)
+├── components/         # Globale, wiederverwendbare Komponenten (Button, Input, etc.)
+│   └── Button/
+│       ├── Button.jsx
+│       ├── Button.test.jsx
+│       └── index.js
+├── hooks/              # Globale, wiederverwendbare React-Hooks (z.B. useAuth, useApi)
+├── layouts/            # Layout-Komponenten (z.B. MainLayout, AuthLayout)
+├── pages/              # Seiten-Komponenten, die Routen entsprechen
+│   └── DashboardPage/
+│       ├── DashboardPage.jsx
+│       └── components/   # Spezifische Unterkomponenten nur für diese Seite
+│           └── StatsCard.jsx
+├── providers/          # React Context Provider (zB. AuthProvider, ThemeProvider)
+├── routes/             # Routing-Konfiguration
+├── theme/              # MUI Theme-Konfiguration
+│   ├── palette.js
+│   ├── typography.js
+│   ├── components.js     # Globale MUI-Komponenten-Overrides
+│   └── index.js          # Haupt-Theme-Datei (createTheme)
+├── utils/              # Hilfsfunktionen (Formatierer, Validatoren etc.)
+└── App.jsx             # Haupt-App-Komponente
 ```
 
-## React Richtlinien
+### 2.2 Namenskonventionen für Dateien und Verzeichnisse
 
-### 1. Funktionale Komponenten und Hooks
+*   **Verzeichnisse:** `kebab-case` (z.B. `auth-page`). Für Komponentenordner `PascalCase` (z.B. `UserProfile`).
+*   **Komponenten:** `PascalCase` (z.B. `UserProfile.jsx`).
+*   **Hooks:** `use`-Präfix in `camelCase` (z.B. `useUserData.js`). `use` gefolgt von `PascalCase` für den Hook-Namen selbst (z.B. `useUserProfile`).
+*   **Hilfsfunktionen & Services:** `camelCase` (z.B. `dateFormatter.js`).
+*   **Testdateien:** `*.test.jsx` (z.B. `UserProfile.test.jsx`).
 
-**Bevorzuge funktionale Komponenten:**
-```javascript
-// ✅ Gut
-const UserCard = ({ user }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  
-  return (
-    <Card>
-      <CardContent>
-        <Typography variant="h6">{user.name}</Typography>
-      </CardContent>
-    </Card>
-  );
-};
+---
 
-// ❌ Vermeide Klassenkomponenten (außer bei Error Boundaries)
-class UserCard extends Component {
+## 3. Code Style-Regeln (JavaScript + React)
+
+Wir verwenden **Prettier** für die automatische Formatierung und **ESLint** zur Sicherstellung der Code-Qualität.
+
+### 3.1 Formatierung (durch Prettier erzwungen)
+
+*   **Einrückung:** 2 Leerzeichen.
+*   **Zeilenlänge:** Maximal 100 Zeichen.
+*   **Semikolons:** Immer am Zeilenende verwenden.
+*   **Anführungszeichen:** Single Quotes (`'`) für Strings.
+*   **Klammern:** Immer bei `if`, `for`, `while` etc. verwenden, auch wenn der Block nur eine Zeile hat.
+*   **Leerzeichen:** Um Operatoren herum (`a + b`) und innerhalb von Destrukturierungen (`{ user }` statt `{user}`).
+
+### 3.2 Benennungskonventionen
+
+*   **Variablen & Funktionen:** `camelCase` (z.B. `const userName = 'Burak';`).
+*   **Konstanten:** `UPPER_CASE` für globale, unveränderliche Werte (z.B. `const API_URL = '...';`).
+*   **React-Komponenten:** `PascalCase` (z.B. `function UserProfile() {}`).
+*   **Props:** `camelCase` (z.B. `<UserProfile userName="Burak" />`).
+*   **Boolean Props:** Sollten einen `is`, `has`, `should` oder `can` Präfix haben (z.B. `isOpen`, `hasError`).
+*   **Event-Handler Props:** `on`-Präfix gefolgt vom Event (z.B. `onClick`, `onInputChange`).
+*   **Hooks:** `use` gefolgt von `PascalCase` (z.B. `useUserProfile`).
+
+**Gutes Beispiel:**
+```jsx
+// Komponente in PascalCase, Props in camelCase
+const UserList = ({ users, onUserSelect }) => {
+  // Hook-Name use + PascalCase
+  const useUserSelection = () => { /*...*/ };
   // ...
+};
+```
+
+**Schlechtes Beispiel:**
+```jsx
+// Falsche Benennung für Komponente und Props
+const user_list = (props) => {
+  const { on_user_select } = props;
+  // ...
+};
+```
+
+### 3.3 Kommentare und JSDoc
+
+Jede nicht-triviale Funktion, jeder Hook und jede Komponente sollte mit JSDoc kommentiert werden.
+
+**Beispiel:**
+```jsx
+// Einzelzeilenkommentar für kurze Erklärungen
+const taxRate = 0.19;
+
+/**
+ * Summiert zwei Zahlen und gibt das Ergebnis zurück.
+ * @param {number} a Die erste Zahl.
+ * @param {number} b Die zweite Zahl.
+ * @returns {number} Die Summe von a und b.
+ */
+function sum(a, b) {
+  return a + b;
 }
 ```
 
-### 2. Props und PropTypes
+### 3.4 Guter vs. Schlechter Stil
 
-**Verwende PropTypes oder TypeScript:**
-```javascript
-import PropTypes from 'prop-types';
-
-const UserCard = ({ user, onEdit, isEditable = false }) => {
-  // Component logic
-};
-
-UserCard.propTypes = {
-  user: PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    name: PropTypes.string.isRequired,
-    email: PropTypes.string.isRequired,
-  }).isRequired,
-  onEdit: PropTypes.func,
-  isEditable: PropTypes.bool,
-};
-
-UserCard.defaultProps = {
-  onEdit: () => {},
-  isEditable: false,
-};
+**Schlecht 👎:**
+```jsx
+// Harte Lesbarkeit, inkonsistente Benennung und Formatierung
+const userprofile = (props) => {
+    const [v, sV] = useState(false);
+    if(props.user.isAdmin==true)
+        return <div>Admin</div>;
+    return <div onClick={() => { sV(!v) }}>{props.user.name}</div>
+}
 ```
 
-### 3. State Management
+**Gut 👍:**
+```jsx
+import { useState } from 'react';
 
-**useState für lokalen State:**
-```javascript
-const ContactForm = () => {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    message: ''
-  });
+/**
+ * Zeigt das Profil eines Benutzers an.
+ * @param {object} props
+ * @param {object} props.user - Das Benutzerobjekt.
+ */
+function UserProfile({ user }) {
+  const [isVisible, setIsVisible] = useState(false);
 
-  const handleInputChange = (field) => (event) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: event.target.value
-    }));
+  const handleToggleVisibility = () => {
+    setIsVisible((prevIsVisible) => !prevIsVisible);
   };
 
-  return (
-    // Form JSX
-  );
-};
-```
-
-**useReducer für komplexeren State:**
-```javascript
-const initialState = {
-  items: [],
-  loading: false,
-  error: null
-};
-
-const itemsReducer = (state, action) => {
-  switch (action.type) {
-    case 'FETCH_START':
-      return { ...state, loading: true, error: null };
-    case 'FETCH_SUCCESS':
-      return { ...state, loading: false, items: action.payload };
-    case 'FETCH_ERROR':
-      return { ...state, loading: false, error: action.payload };
-    default:
-      return state;
+  if (user.isAdmin) {
+    return <div>Admin-Ansicht</div>;
   }
-};
 
-const ItemsList = () => {
-  const [state, dispatch] = useReducer(itemsReducer, initialState);
-  // Component logic
+  return (
+    <div onClick={handleToggleVisibility}>
+      {user.name}
+      {isVisible && <p>{user.email}</p>}
+    </div>
+  );
+}
+```
+
+---
+
+## 4. React Best Practices
+
+### 4.1 Funktionsbasierte Komponenten
+
+Alle neuen Komponenten **müssen** funktionsbasierte Komponenten mit Hooks sein. Klassenkomponenten sind veraltet und dürfen nicht verwendet werden.
+
+### 4.2 Grundlegende Komponente mit State
+
+Eine einfache Komponente zeigt die grundlegende Verwendung von Funktionskomponenten und dem `useState`-Hook.
+
+```jsx
+import React, { useState } from 'react';
+
+/**
+ * Ein einfacher Zähler, der bei jedem Klick hochzählt.
+ */
+function Counter() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <button onClick={() => setCount(count + 1)}>
+      Zähler: {count}
+    </button>
+  );
+}
+```
+
+### 4.3 Wichtige Hooks
+
+*   **`useState`:** Für einfachen Komponenten-State.
+*   **`useEffect`:** Nur für Seiteneffekte (API-Aufrufe, Subscriptions). Den Dependency-Array immer korrekt angeben.
+*   **`useContext`:** Für den Zugriff auf globale Daten (Theme, Authentifizierung).
+*   **`useMemo`:** Um teure Berechnungen zu memoizen.
+*   **`useCallback`:** Um Funktionsreferenzen zu memoizen, die an Kindkomponenten weitergegeben werden.
+
+### 4.4 Props-Handling und Datenfluss
+
+*   **Einweg-Datenfluss:** Daten fließen von oben nach unten (Parent zu Child).
+*   **Props Destructuring:** Props immer im Funktionskopf destrukturieren.
+*   **Nur notwendige Props:** Eine Komponente sollte nur die Props erhalten, die sie wirklich benötigt.
+*   **Lift State Up:** Wenn mehrere Kindkomponenten den gleichen Zustand benötigen, hebe diesen Zustand auf die niedrigste gemeinsame Elternkomponente. Die Kinder erhalten den Zustand und die Update-Funktionen als Props.
+*   **`propTypes`:** Alle Komponenten müssen `propTypes` definieren.
+
+**Beispiel für `propTypes`:**
+```jsx
+import PropTypes from 'prop-types';
+
+function UserAvatar({ imageUrl, size = 60 }) {
+  return <img src={imageUrl} alt="User Avatar" width={size} height={size} />;
+}
+
+UserAvatar.propTypes = {
+  imageUrl: PropTypes.string.isRequired,
+  size: PropTypes.number,
 };
 ```
 
-### 4. Effect Hooks
+### 4.5 Asynchroner Code
 
-**Korrekte useEffect Verwendung:**
-```javascript
-const UserProfile = ({ userId }) => {
+Für API-Aufrufe sollte ein zentralisierter Hook (`useApi`) oder eine Service-Schicht verwendet werden, um Logik für Loading-Status, Fehlerbehandlung und Caching zu bündeln.
+
+**Beispiel `useEffect` für Datenabruf:**
+```jsx
+function UserData({ userId }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  // Effect mit Dependency Array
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        setLoading(true);
-        const userData = await api.getUser(userId);
-        setUser(userData);
-      } catch (error) {
-        console.error('Failed to fetch user:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (userId) {
-      fetchUser();
-    }
-  }, [userId]); // Dependency Array
-
-  // Cleanup Effect
-  useEffect(() => {
-    const timer = setInterval(() => {
-      // Some periodic task
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
-
-  if (loading) return <CircularProgress />;
-  if (!user) return <Typography>User not found</Typography>;
-
-  return <UserDisplay user={user} />;
-};
-```
-
-### 5. Custom Hooks
-
-**Erstelle wiederverwendbare Custom Hooks:**
-```javascript
-// hooks/useApi.js
-const useApi = (url, options = {}) => {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const fetchData = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await fetch(url, options);
-      const result = await response.json();
-      setData(result);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [url, options]);
-
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    setLoading(true);
+    setError(null);
 
-  return { data, loading, error, refetch: fetchData };
-};
+    fetch(`/api/users/${userId}`)
+      .then((res) => res.ok ? res.json() : Promise.reject('Fehler beim Laden'))
+      .then((data) => setUser(data))
+      .catch((err) => setError(err))
+      .finally(() => setLoading(false));
 
-// Verwendung
-const UsersList = () => {
-  const { data: users, loading, error } = useApi('/api/users');
-  
-  if (loading) return <CircularProgress />;
-  if (error) return <Alert severity="error">{error}</Alert>;
-  
+  }, [userId]);
+
+  if (loading) return <p>Lade...</p>;
+  if (error) return <p>Fehler: {error}</p>;
+
+  return <div>{user?.name}</div>;
+}
+```
+
+---
+
+## 5. Material UI (MUI) Richtlinien
+
+### 5.1 ThemeProvider und `createTheme`
+
+Die gesamte Anwendung muss von einem `ThemeProvider` umschlossen sein, der ein mit `createTheme` erstelltes, zentrales Theme-Objekt bereitstellt.
+
+**`/src/theme/index.js`:**
+```jsx
+import { createTheme } from '@mui/material/styles';
+import palette from './palette';
+import typography from './typography';
+
+const theme = createTheme({
+  palette,
+  typography,
+  // Weitere globale Anpassungen...
+});
+
+export default theme;
+```
+
+**`/src/App.jsx`:**
+```jsx
+import { ThemeProvider } from '@mui/material/styles';
+import theme from './theme';
+
+function App() {
   return (
-    <List>
-      {users?.map(user => (
-        <UserListItem key={user.id} user={user} />
-      ))}
-    </List>
+    <ThemeProvider theme={theme}>
+      {/* Rest der App */}
+    </ThemeProvider>
   );
+}
+```
+
+### 5.2 `sx`-Prop vs. `styled()`
+
+*   **`sx`-Prop:** Verwenden für einmalige, komponentenspezifische Anpassungen. Ideal für schnelle Layout-Anpassungen (Margin, Padding, etc.). Bietet direkten Zugriff auf Theme-Werte.
+*   **`styled()`-API:** Verwenden für die Erstellung wiederverwendbarer, stark angepasster Komponenten. Dies ist der bevorzugte Weg, um die Basis-MUI-Komponenten zu erweitern und eine eigene Komponentenbibliothek aufzubauen.
+
+**Beispiel `sx`:**
+```jsx
+<Button
+  variant="contained"
+  sx={{
+    mt: 2, // theme.spacing(2)
+    bgcolor: 'primary.dark',
+    '&:hover': {
+      bgcolor: 'primary.main',
+    },
+  }}
+>
+  Senden
+</Button>
+```
+
+**Beispiel `styled()`:**
+```jsx
+import { styled } from '@mui/material/styles';
+import Button from '@mui/material/Button';
+
+const PrimaryActionButton = styled(Button)(({ theme }) => ({
+  backgroundColor: theme.palette.primary.dark,
+  color: theme.palette.common.white,
+  padding: theme.spacing(1, 4),
+  '&:hover': {
+    backgroundColor: theme.palette.primary.main,
+  },
+}));
+
+// Verwendung:
+// <PrimaryActionButton>Jetzt Kaufen</PrimaryActionButton>
+```
+
+### 5.3 Responsives Design
+
+*   **Grid:** Das `Grid`-System ist für Makro-Layouts zu bevorzugen.
+*   **Breakpoints:** Verwende Breakpoints aus dem Theme, um responsive Styles zu definieren. Dies kann sowohl in der `sx`-Prop als auch in `styled()` erfolgen.
+
+**Beispiel:**
+```jsx
+<Box
+  sx={{
+    width: {
+      xs: 100, // 100px breit auf extra-small Screens
+      sm: 200, // 200px breit ab small Screens
+      md: 300, // etc.
+    },
+    bgcolor: 'secondary.main',
+  }}
+/>
+```
+
+### 5.4 Accessibility (a11y)
+
+MUI bietet von Haus aus eine gute Basis für Barrierefreiheit. Achte darauf, diese nicht zu untergraben:
+*   Gib `aria-label` für `IconButton`-Komponenten an.
+*   Verwende `DialogTitle`, `DialogContentText` für korrekte Semantik in Dialogen.
+*   Stelle sicher, dass alle interaktiven Elemente per Tastatur erreichbar und bedienbar sind.
+
+---
+
+## 6. Testing & Codequalität
+
+### 6.1 Linting (ESLint + Prettier)
+
+Jeder Commit wird durch Linter-Regeln geprüft, um eine konsistente Code-Qualität und -Formatierung sicherzustellen. ESLint ist für die Code-Qualität (z. B. ungenutzte Variablen) und Prettier für die reine Code-Formatierung (Einrückung, Zeilenumbrüche) zuständig.
+
+**`.eslintrc.js` (Beispiel mit Kommentaren):**
+
+Diese Datei konfiguriert ESLint. Sie legt fest, welche Regeln für unseren Code gelten und in welcher Umgebung er ausgeführt wird.
+
+```javascript
+module.exports = {
+  // Definiert die globalen Variablen, die in der Umgebung verfügbar sind.
+  env: {
+    browser: true, // Globale Variablen des Browsers (z.B. `window`, `document`).
+    es2021: true,  // Aktiviert ES2021-Syntax und globale Variablen.
+    jest: true,    // Globale Variablen für Jest-Tests (z.B. `describe`, `it`, `expect`).
+  },
+  
+  // Erweitert die Konfiguration um vordefinierte Regelwerke.
+  // Die Reihenfolge ist wichtig: spätere Konfigurationen überschreiben frühere.
+  extends: [
+    // Aktiviert die von ESLint empfohlenen Basisregeln.
+    'eslint:recommended',
+    
+    // Aktiviert empfohlene Regeln für React-Anwendungen (z.B. fehlende Keys in Listen).
+    'plugin:react/recommended',
+    
+    // Erzwingt die "Rules of Hooks" (z.B. Hooks nur auf oberster Ebene aufrufen).
+    'plugin:react-hooks/recommended',
+    
+    // Integriert Prettier und deaktiviert alle ESLint-Formatierungsregeln,
+    // die mit Prettier in Konflikt stehen könnten. So wird sichergestellt,
+    // dass Prettier allein für die Formatierung zuständig ist.
+    // Wichtig: Muss immer der letzte Eintrag im `extends`-Array sein!
+    'prettier',
+  ],
+
+  // Hier können individuelle Regeln überschrieben oder hinzugefügt werden.
+  rules: {
+    // Stuft fehlende prop-types von einem Fehler ('error') zu einer Warnung ('warn') herab.
+    // Dies verhindert, dass der Build-Prozess bei fehlenden prop-types abbricht, gibt aber dennoch einen Hinweis.
+    'react/prop-types': 'warn',
+    
+    // Deaktiviert die Regel, die `import React from 'react'` in jeder JSX-Datei erfordert.
+    // Ab React 17 ist dies dank des neuen JSX-Transforms nicht mehr notwendig.
+    'react/react-in-jsx-scope': 'off',
+  },
+  
+  // Konfigurations-Einstellungen für Plugins.
+  settings: {
+    react: {
+      // Weist das React-Plugin an, die installierte React-Version automatisch zu erkennen.
+      // Dies ist wichtig, damit die Regeln korrekt auf die jeweilige Version angewendet werden.
+      version: 'detect',
+    },
+  },
 };
 ```
 
-## Material-UI (MUI) Richtlinien
+**`.prettierrc` (Beispiel mit Kommentaren):**
 
-### 1. Theme Setup
+Diese Datei konfiguriert Prettier. Sie enthält ausschließlich Regeln zur Code-Formatierung.
 
-**Erstelle ein konsistentes Theme:**
-```javascript
-// theme.js
+```json
+{
+  // `true`: Fügt am Ende jeder Anweisung ein Semikolon ein.
+  // Beispiel: `const a = 1;`
+  "semi": true,
+  
+  // `true`: Verwendet einfache Anführungszeichen ('') anstelle von doppelten ("").
+  // Beispiel: `const name = 'React';`
+  "singleQuote": true,
+  
+  // Fügt ein Komma nach dem letzten Element in mehrzeiligen Objekten und Arrays hinzu.
+  // 'all': Fügt es auch bei Funktionsargumenten hinzu.
+  // Vorteil: Sauberere Git-Diffs, wenn neue Elemente hinzugefügt werden.
+  "trailingComma": "all",
+  
+  // Die maximale Zeilenlänge, bevor Prettier einen Zeilenumbruch erzwingt.
+  // Wir halten uns an die zuvor definierte Regel von 100 Zeichen.
+  "printWidth": 100,
+  
+  // Die Anzahl der Leerzeichen pro Einrückungsebene.
+  "tabWidth": 2
+}
+```
+
+### 6.2 Komponententests (Jest + React Testing Library)
+
+Jede Komponente sollte getestet werden.
+
+*   **Snapshot-Tests:** Nur für rein statische Komponenten verwenden, um unbeabsichtigte UI-Änderungen zu erkennen.
+*   **Unit-Tests:** Der Fokus liegt auf der Interaktion des Benutzers. Teste, was der Benutzer sieht und tun kann, nicht die Implementierungsdetails.
+
+**Beispiel für einen Komponententest (`Button.test.jsx`):**
+```jsx
+import { render, screen, fireEvent } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import Button from './Button';
+
+describe('Button Komponente', () => {
+  test('rendert den Text korrekt', () => {
+    render(<Button>Klick mich</Button>);
+    expect(screen.getByText('Klick mich')).toBeInTheDocument();
+  });
+
+  test('ruft den onClick-Handler auf, wenn geklickt wird', () => {
+    const handleClick = jest.fn();
+    render(<Button onClick={handleClick}>Klick mich</Button>);
+
+    fireEvent.click(screen.getByText('Klick mich'));
+
+    expect(handleClick).toHaveBeenCalledTimes(1);
+  });
+
+  test('ist deaktiviert, wenn die disabled-Prop gesetzt ist', () => {
+    render(<Button disabled>Klick mich</Button>);
+    expect(screen.getByRole('button')).toBeDisabled();
+  });
+});
+```
+
+---
+
+## 7. Performance & Sicherheit
+
+### 7.1 Performance
+
+*   **Code Splitting:** Nutze `React.lazy()` und `Suspense`, um Seiten oder große Komponenten nachzuladen.
+
+  ```jsx
+  const DashboardPage = React.lazy(() => import('./pages/DashboardPage'));
+
+  <Suspense fallback={<div>Lade...</div>}>
+    <DashboardPage />
+  </Suspense>
+  ```
+*   **Memoization:** Verwende `React.memo` für Komponenten, die bei gleichen Props nicht neu rendern sollen. Kombiniere es mit `useCallback` und `useMemo` im Parent, um unnötige Re-Renders zu vermeiden.
+
+---
+
+## 8. Abschließendes Beispielprojekt (Mini-Demo)
+
+Dieses Setup zeigt das Zusammenspiel von Theme, einer benutzerdefinierten Komponente und deren Verwendung.
+
+**1. `/src/theme/index.js` (Theme-Setup)**
+```jsx
 import { createTheme } from '@mui/material/styles';
 
 const theme = createTheme({
@@ -247,9 +513,6 @@ const theme = createTheme({
     secondary: {
       main: '#dc004e',
     },
-    background: {
-      default: '#f5f5f5',
-    },
   },
   typography: {
     fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
@@ -257,558 +520,65 @@ const theme = createTheme({
       fontSize: '2.5rem',
       fontWeight: 500,
     },
-    h2: {
-      fontSize: '2rem',
-      fontWeight: 500,
-    },
-  },
-  spacing: 8, // Standard spacing unit
-  shape: {
-    borderRadius: 8,
-  },
-  components: {
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          textTransform: 'none', // Keine automatische Großschreibung
-          borderRadius: 8,
-        },
-      },
-    },
-    MuiCard: {
-      styleOverrides: {
-        root: {
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-        },
-      },
-    },
   },
 });
 
 export default theme;
 ```
 
-### 2. Responsive Design
-
-**Verwende MUI's Breakpoint System:**
-```javascript
-import { useTheme, useMediaQuery } from '@mui/material';
-import { Box, Grid, Container } from '@mui/material';
-
-const ResponsiveLayout = () => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-
-  return (
-    <Container maxWidth="lg">
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={8}>
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: { xs: 'column', md: 'row' },
-              gap: 2,
-              p: { xs: 2, md: 3 },
-            }}
-          >
-            {/* Content */}
-          </Box>
-        </Grid>
-        <Grid item xs={12} md={4}>
-          {/* Sidebar */}
-        </Grid>
-      </Grid>
-    </Container>
-  );
-};
-```
-
-### 3. Styled Components vs sx prop
-
-**Bevorzuge sx prop für einfache Styles:**
-```javascript
-// ✅ Gut für einfache Styles
-<Button
-  sx={{
-    bgcolor: 'primary.main',
-    color: 'white',
-    '&:hover': {
-      bgcolor: 'primary.dark',
-    },
-    mb: 2,
-  }}
->
-  Click me
-</Button>
-
-// ✅ Styled Components für komplexere oder wiederverwendbare Styles
+**2. `/src/components/layout/Navbar.jsx` (Komponente)**
+```jsx
+import AppBar from '@mui/material/AppBar';
+import Toolbar from '@mui/material/Toolbar';
+import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
+import Button from '@mui/material/Button';
 
-const StyledCard = styled(Card)(({ theme }) => ({
-  padding: theme.spacing(3),
-  margin: theme.spacing(2, 0),
-  transition: theme.transitions.create(['transform', 'box-shadow']),
-  '&:hover': {
-    transform: 'translateY(-2px)',
-    boxShadow: theme.shadows[8],
-  },
-  [theme.breakpoints.down('md')]: {
-    padding: theme.spacing(2),
-  },
-}));
-```
-
-### 4. Icon Usage
-
-**Konsistente Icon-Verwendung:**
-```javascript
-import {
-  Add as AddIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  Search as SearchIcon,
-} from '@mui/icons-material';
-
-const ActionBar = ({ onAdd, onEdit, onDelete }) => (
-  <Box sx={{ display: 'flex', gap: 1 }}>
-    <IconButton onClick={onAdd} color="primary" aria-label="add">
-      <AddIcon />
-    </IconButton>
-    <IconButton onClick={onEdit} color="default" aria-label="edit">
-      <EditIcon />
-    </IconButton>
-    <IconButton onClick={onDelete} color="error" aria-label="delete">
-      <DeleteIcon />
-    </IconButton>
-  </Box>
-);
-```
-
-### 5. Form Components
-
-**Strukturierte Formular-Implementierung:**
-```javascript
-import {
-  TextField,
-  Button,
-  FormControl,
-  FormHelperText,
-  InputLabel,
-  Select,
-  MenuItem,
-} from '@mui/material';
-
-const ContactForm = () => {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    subject: '',
-    message: '',
-  });
-  const [errors, setErrors] = useState({});
-
-  const validateForm = () => {
-    const newErrors = {};
-    
-    if (!formData.name.trim()) {
-      newErrors.name = 'Name ist erforderlich';
-    }
-    
-    if (!formData.email.trim()) {
-      newErrors.email = 'E-Mail ist erforderlich';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'E-Mail-Format ist ungültig';
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    if (validateForm()) {
-      // Submit logic
-    }
-  };
-
-  return (
-    <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
-      <TextField
-        fullWidth
-        label="Name"
-        value={formData.name}
-        onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-        error={!!errors.name}
-        helperText={errors.name}
-        margin="normal"
-        required
-      />
-      
-      <TextField
-        fullWidth
-        label="E-Mail"
-        type="email"
-        value={formData.email}
-        onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-        error={!!errors.email}
-        helperText={errors.email}
-        margin="normal"
-        required
-      />
-      
-      <FormControl fullWidth margin="normal">
-        <InputLabel>Betreff</InputLabel>
-        <Select
-          value={formData.subject}
-          onChange={(e) => setFormData(prev => ({ ...prev, subject: e.target.value }))}
-        >
-          <MenuItem value="support">Support</MenuItem>
-          <MenuItem value="feedback">Feedback</MenuItem>
-          <MenuItem value="other">Sonstiges</MenuItem>
-        </Select>
-      </FormControl>
-      
-      <TextField
-        fullWidth
-        label="Nachricht"
-        multiline
-        rows={4}
-        value={formData.message}
-        onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
-        margin="normal"
-      />
-      
-      <Button
-        type="submit"
-        variant="contained"
-        size="large"
-        sx={{ mt: 2 }}
-        fullWidth
-      >
-        Senden
-      </Button>
-    </Box>
-  );
-};
-```
-
-## Code-Struktur und Organisation
-
-### Projekt-Struktur
-```
-src/
-├── components/           # Wiederverwendbare Komponenten
-│   ├── common/          # Allgemeine Komponenten
-│   │   ├── Button/
-│   │   ├── Modal/
-│   │   └── Layout/
-│   └── forms/           # Formular-Komponenten
-├── pages/               # Seiten-Komponenten
-├── hooks/               # Custom Hooks
-├── utils/               # Utility-Funktionen
-├── services/            # API Services
-├── contexts/            # React Contexts
-├── constants/           # Konstanten
-├── styles/              # Global Styles und Theme
-└── __tests__/           # Test-Dateien
-```
-
-### Komponentenstruktur
-```javascript
-// components/UserCard/UserCard.jsx
-import React from 'react';
-import PropTypes from 'prop-types';
-import { Card, CardContent, Typography, Avatar } from '@mui/material';
-import { styled } from '@mui/material/styles';
-
-const StyledCard = styled(Card)(({ theme }) => ({
-  // Styles
+const StyledToolbar = styled(Toolbar)(({ theme }) => ({
+  display: 'flex',
+  justifyContent: 'space-between',
 }));
 
-const UserCard = ({ user, onClick }) => {
-  // Component logic
-  
+const LogoText = styled(Typography)(({ theme }) => ({
+  fontWeight: 'bold',
+  color: theme.palette.common.white,
+}));
+
+export default function Navbar() {
   return (
-    <StyledCard onClick={onClick}>
-      {/* JSX */}
-    </StyledCard>
+    <AppBar position="static">
+      <StyledToolbar>
+        <LogoText variant="h6">Mein Projekt</LogoText>
+        <div>
+          <Button color="inherit">Home</Button>
+          <Button color="inherit">About</Button>
+          <Button variant="contained" color="secondary" sx={{ ml: 2 }}>
+            Login
+          </Button>
+        </div>
+      </StyledToolbar>
+    </AppBar>
   );
-};
-
-UserCard.propTypes = {
-  // PropTypes
-};
-
-export default UserCard;
+}
 ```
 
-## Styling Guidelines
+**3. `/src/App.jsx` (Zusammenführung)**
+```jsx
+import { ThemeProvider, CssBaseline } from '@mui/material';
+import theme from './theme';
+import Navbar from './components/layout/Navbar';
 
-### 1. Theme-basierte Styles
-```javascript
-// Verwende Theme-Werte
-const MyComponent = () => (
-  <Box
-    sx={{
-      p: 2,                    // theme.spacing(2)
-      bgcolor: 'primary.main', // theme.palette.primary.main
-      borderRadius: 1,         // theme.shape.borderRadius
-      boxShadow: 2,           // theme.shadows[2]
-    }}
-  >
-    Content
-  </Box>
-);
-```
-
-### 2. Konsistente Spacing
-```javascript
-// Verwende das 8px Grid System
-const spacing = {
-  xs: 0.5, // 4px
-  sm: 1,   // 8px
-  md: 2,   // 16px
-  lg: 3,   // 24px
-  xl: 4,   // 32px
-};
-
-<Box sx={{ p: spacing.md, m: spacing.sm }}>
-  Content
-</Box>
-```
-
-### 3. Color Palette
-```javascript
-// Verwende Palette-Farben statt hardcodierte Werte
-<Typography
-  sx={{
-    color: 'text.primary',      // Statt '#000'
-    bgcolor: 'background.paper', // Statt '#fff'
-  }}
->
-  Text
-</Typography>
-```
-
-## Performance Best Practices
-
-### 1. Memoization
-```javascript
-// React.memo für Komponenten
-const ExpensiveComponent = React.memo(({ data }) => {
-  return <ComplexVisualization data={data} />;
-});
-
-// useMemo für schwere Berechnungen
-const ProcessedData = ({ items }) => {
-  const expensiveValue = useMemo(() => {
-    return items.reduce((acc, item) => {
-      // Schwere Berechnung
-      return acc + complexCalculation(item);
-    }, 0);
-  }, [items]);
-
-  return <div>{expensiveValue}</div>;
-};
-
-// useCallback für Funktionen
-const ParentComponent = () => {
-  const [count, setCount] = useState(0);
-  
-  const handleClick = useCallback(() => {
-    setCount(prev => prev + 1);
-  }, []);
-
-  return <ChildComponent onClick={handleClick} />;
-};
-```
-
-### 2. Lazy Loading
-```javascript
-// Code Splitting mit React.lazy
-const LazyComponent = React.lazy(() => import('./LazyComponent'));
-
-const App = () => (
-  <Suspense fallback={<CircularProgress />}>
-    <LazyComponent />
-  </Suspense>
-);
-```
-
-### 3. List Optimierung
-```javascript
-// Verwende keys für Listen
-const ItemsList = ({ items }) => (
-  <List>
-    {items.map(item => (
-      <ListItem key={item.id}>
-        <ListItemText primary={item.name} />
-      </ListItem>
-    ))}
-  </List>
-);
-```
-
-## Testing Guidelines
-
-### 1. Component Testing
-```javascript
-// UserCard.test.jsx
-import { render, screen, fireEvent } from '@testing-library/react';
-import { ThemeProvider } from '@mui/material/styles';
-import theme from '../styles/theme';
-import UserCard from './UserCard';
-
-const renderWithTheme = (component) => {
-  return render(
+function App() {
+  return (
     <ThemeProvider theme={theme}>
-      {component}
+      <CssBaseline /> {/* Normalisiert CSS */}
+      <Navbar />
+      <main>
+        {/* Hier würden die Seiten-Komponenten gerendert werden */}
+      </main>
     </ThemeProvider>
   );
-};
-
-describe('UserCard', () => {
-  const mockUser = {
-    id: '1',
-    name: 'John Doe',
-    email: 'john@example.com',
-  };
-
-  it('renders user information correctly', () => {
-    renderWithTheme(<UserCard user={mockUser} />);
-    
-    expect(screen.getByText('John Doe')).toBeInTheDocument();
-    expect(screen.getByText('john@example.com')).toBeInTheDocument();
-  });
-
-  it('calls onClick when clicked', () => {
-    const mockOnClick = jest.fn();
-    renderWithTheme(<UserCard user={mockUser} onClick={mockOnClick} />);
-    
-    fireEvent.click(screen.getByRole('button'));
-    expect(mockOnClick).toHaveBeenCalledWith(mockUser);
-  });
-});
-```
-
-### 2. Hook Testing
-```javascript
-// useApi.test.js
-import { renderHook, waitFor } from '@testing-library/react';
-import { useApi } from './useApi';
-
-// Mock fetch
-global.fetch = jest.fn();
-
-describe('useApi', () => {
-  beforeEach(() => {
-    fetch.mockClear();
-  });
-
-  it('fetches data successfully', async () => {
-    const mockData = { id: 1, name: 'Test' };
-    fetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockData,
-    });
-
-    const { result } = renderHook(() => useApi('/api/test'));
-
-    expect(result.current.loading).toBe(true);
-
-    await waitFor(() => {
-      expect(result.current.loading).toBe(false);
-    });
-
-    expect(result.current.data).toEqual(mockData);
-    expect(result.current.error).toBe(null);
-  });
-});
-```
-
-## Code-Qualität Tools
-
-### ESLint Konfiguration
-```json
-// .eslintrc.json
-{
-  "extends": [
-    "react-app",
-    "react-app/jest"
-  ],
-  "rules": {
-    "react/prop-types": "error",
-    "react/jsx-uses-react": "error",
-    "react/jsx-uses-vars": "error",
-    "react-hooks/rules-of-hooks": "error",
-    "react-hooks/exhaustive-deps": "warn"
-  }
 }
-```
 
-### Prettier Konfiguration
-```json
-// .prettierrc
-{
-  "semi": true,
-  "trailingComma": "es5",
-  "singleQuote": true,
-  "printWidth": 80,
-  "tabWidth": 2
-}
-```
-
-## Accessibility Guidelines
-
-### 1. ARIA Labels und Semantic HTML
-```javascript
-const AccessibleButton = () => (
-  <Button
-    aria-label="Benutzer hinzufügen"
-    aria-describedby="add-user-description"
-  >
-    <AddIcon />
-  </Button>
-);
-
-const AccessibleForm = () => (
-  <form role="form" aria-labelledby="form-title">
-    <Typography id="form-title" variant="h2">
-      Benutzer-Registrierung
-    </Typography>
-    <TextField
-      label="Name"
-      required
-      aria-required="true"
-      aria-describedby="name-helper"
-    />
-    <FormHelperText id="name-helper">
-      Geben Sie Ihren vollständigen Namen ein
-    </FormHelperText>
-  </form>
-);
-```
-
-### 2. Keyboard Navigation
-```javascript
-const KeyboardNavigable = () => {
-  const handleKeyDown = (event) => {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      handleAction();
-    }
-  };
-
-  return (
-    <Box
-      role="button"
-      tabIndex={0}
-      onKeyDown={handleKeyDown}
-      onClick={handleAction}
-      sx={{ cursor: 'pointer' }}
-    >
-      Klickbares Element
-    </Box>
-  );
-};
+export default App;
 ```
