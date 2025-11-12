@@ -1,0 +1,50 @@
+Vorüberlegungen für das Frontend in React.js mit Spring Boot Backend
+
+Hallo! Da du dich auf die Frontend-Entwicklung konzentrierst, ist es klug, frühzeitig Informationen vom Backend-Team einzuholen, um eine nahtlose Integration zu gewährleisten. Spring Boot ist ein Java-Framework, das typischerweise REST-APIs bereitstellt, die dein React-Frontend konsumieren wird. Hier ist eine Liste der wichtigsten Informationen, die du vom Backend-Team anfragen solltest, um deine Vorüberlegungen (z. B. Architektur, Komponentenplanung, State-Management) zu machen:
+1. API-Endpunkte und Spezifikationen
+
+    Was brauchst du? Eine detaillierte Liste aller verfügbaren API-Endpunkte (z. B. GET, POST, PUT, DELETE), inklusive URLs, Parametern und erwarteten Responses.
+    Warum? Damit du weißt, welche Daten du abfragen kannst und wie du sie in React (z. B. mit Axios oder Fetch) einbindest. Idealerweise gibts eine OpenAPI/Swagger-Dokumentation, die du als Referenz nutzen kannst.
+    Beispiel: Endpunkt für Benutzer-Login: POST /api/auth/login mit Body {username, password} und Response {token, userId}.
+
+2. Datenmodelle und Schemas
+
+    Was brauchst du? Beschreibungen der Datenstrukturen für Requests und Responses (z. B. JSON-Schemas für User-Objekte, Produkte usw.).
+    Warum? Um TypeScript-Interfaces oder Prop-Types in React zu definieren und sicherzustellen, dass dein Frontend die Daten korrekt verarbeitet. Vermeide spätere Bugs durch Typkonflikte.
+    Beispiel: Ein User-Objekt könnte {id: number, name: string, email: string} sein.
+
+3. Authentifizierung und Autorisierung
+
+    Was brauchst du? Details zu JWT-Tokens, OAuth, Session-Management oder anderen Mechanismen, die Spring Boot verwendet. Auch Regeln für Rollen/Rechte (z. B. Admin vs. User).
+    Warum? Damit du in React ein Auth-System (z. B. mit Context API oder Redux) aufbaust und geschützte Routen (z. B. via React Router) implementierst.
+    Beispiel: Tokens müssen in jedem API-Call im Header Authorization: Bearer {token} gesendet werden.
+
+4. Error-Handling und Statuscodes
+
+    Was brauchst du? Eine Übersicht über HTTP-Statuscodes (z. B. 400 für Bad Request, 401 für Unauthorized) und standardisierte Error-Responses.
+    Warum? Um in React User-freundliche Fehlerbehandlungen zu implementieren (z. B. Toast-Notifications bei Fehlern) und Edge-Cases zu planen.
+    Beispiel: Fehler-Response: {error: "Invalid credentials", code: 401}.
+
+5. Datenformate und Serialisierung
+
+    Was brauchst du? Informationen zu erwarteten Datenformaten (z. B. JSON, Date-Formate wie ISO 8601) und ob es Validierungen gibt (z. B. via Bean Validation in Spring).
+    Warum? Damit dein Frontend Daten korrekt parst und sendet, z. B. Datumsfelder richtig formatiert.
+    Beispiel: Datum als String in ISO-Format: "2023-10-01T12:00:00Z".
+
+6. Performance- und Caching-Aspekte
+
+    Was brauchst du? Infos zu Rate-Limiting, Caching-Strategien (z. B. ETags in Spring) oder Pagination für große Datenmengen.
+    Warum? Um in React Optimierungen wie Lazy-Loading oder Memoization zu planen und eine gute User-Experience sicherzustellen.
+    Beispiel: API unterstützt Pagination mit ?page=1&size=10.
+
+7. Sicherheitsanforderungen und CORS
+
+    Was brauchst du? Regeln für Cross-Origin Resource Sharing (CORS), HTTPS-Anforderungen und eventuelle Sicherheits-Header.
+    Warum? Damit du dein React-Dev-Server richtig konfigurierst (z. B. Proxy-Einstellungen) und keine CORS-Fehler im Development auftreten.
+    Beispiel: Backend erlaubt Requests nur von https://yourdomain.com.
+
+8. Deployment- und Integrationsdetails
+
+    Was brauchst du? Informationen zu Umgebungen (Dev, Staging, Prod), API-Basen-URLs und eventuellen WebSockets oder Real-Time-Features.
+    Warum? Um deine Build- und Deployment-Scripts (z. B. mit Create React App oder Vite) vorzubereiten und Mock-Daten für frühe Tests zu erstellen.
+    Beispiel: Prod-API: https://api.yourapp.com/v1.
